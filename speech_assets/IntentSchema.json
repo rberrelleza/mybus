@@ -14,16 +14,25 @@
       ]
     },
     {
-      "intent": "RemoveStop",
+      "intent": "AddBus",
       "slots": [
         {
-          "name": "StopID",
+          "name": "BusID",
           "type": "AMAZON.NUMBER"
         }
       ]
     },
     {
-      "intent": "ListStops",
+      "intent": "RemoveBus",
+      "slots": [
+        {
+          "name": "BusID",
+          "type": "AMAZON.NUMBER"
+        }
+      ]
+    },
+    {
+      "intent": "ListBuses",
       "slots": [
       ]
     }

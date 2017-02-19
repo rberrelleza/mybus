@@ -15,6 +15,8 @@ DYNAMO_REGION = os.getenv("DYNAMO_REGION", "us-east-1")
 TIME_TEMPLATE = "Bus {0} is coming in {1} minutes"
 STOP_TEMPLATE = "At {} {}"
 SORRY = "Sorry, I'm having problems right now, please try again later"
+STOPID_KEY="stopid"
+STOPNAME_KEY="stopname"
 
 app = Flask(__name__)
 ask = Ask(app, "/")
@@ -28,6 +30,43 @@ else:
 
 dynamodb_table = dynamodb.Table("sfbus")
 
+def updateStopList(userId, newStop):
+  response = dynamodb_table.query(KeyConditionExpression=Key('userId').eq(userId))
+
+  if response and len(response["Items"]) > 0:
+    stops = response["Items"][0]['stops']
+  else:
+    stops = {}
+
+  if newStop['code'] in stops:
+    existingStop = stops[newStop['code']]
+    if 'buses' in existingStop:
+      newStop['buses'] = list(set(existingStop['buses'] + newStop['buses']))
+
+  stops[newStop['code']] = newStop
+
+  response = dynamodb_table.update_item(
+      Key={
+          'userId':userId
+      },
+      UpdateExpression="set stops = :s",
+      ExpressionAttributeValues={
+          ':s': stops
+      }
+  )
+
+  card_title = render_template('card_title')
+  responseText = render_template("add_stop", stop=newStop['code'], route=",".join(newStop['buses']))
+  return statement(responseText).simple_card(card_title, responseText)
+
+def getSentence(words):
+  if len(words) == 0:
+    return ""
+  elif len(words) == 1:
+    return words[0]
+
+  return "{} and {}".format(", ".join([str(w) for w in words[:-1]]), str(words[-1]))
+
 @ask.launch
 def getBusTimes():
     card_title = render_template('card_title')
@@ -38,33 +77,24 @@ def getBusTimes():
       reponseStatement = "Please add a stop first"
     else:
       stops = []
-      stop_texts = []
+      departures = []
+
       for key in response["Items"][0]['stops']:
         s = response["Items"][0]['stops'][key]
-        logging.error(s)
         stop = Stop(TOKEN, s["name"], s["code"])
-
-        if "route" in s:
-          deps = stop.next_departures(s["route"])
-        else:
-          deps = stop.all_departures()
-        departures = []
-        for d in deps:
-          if len(d.times) > 0:
-              readable_departure_times = "{}".format(d.times[0])
-              if len(d.times) > 1:
-                readable_departure_times = "{} and {}".format(readable_departure_times, d.times[1])
-
-          departures.append(TIME_TEMPLATE.format(d.route, readable_departure_times))
-        stop_texts.append(STOP_TEMPLATE.format(stop.name, ", ".join(departures)))
+        if "buses" in s:
+          for r in s["buses"]:
+            d = stop.next_departures(r)
+            readable_departure_times = getSentence(d.times)
+            departures.append(TIME_TEMPLATE.format(d.route, readable_departure_times))
 
       if len(departures) == 0:
-          reponseStatement = "Couldn't get information about the requested stops, please try again"
+          reponseStatement = "Couldn't get information about the requested buses, please try again"
       else:
-          reponseStatement = "; ".join(stop_texts)
+          reponseStatement = "; ".join(departures)
 
 
-    return statement(reponseStatement).simple_card(card_title, "\n".join(stop_texts))
+    return statement(reponseStatement).simple_card(card_title, "\n".join(departures))
 
 @ask.intent("AddStop")
 def addStop(StopID):
@@ -78,18 +108,60 @@ def addStop(StopID):
       logging.exception("error loadding the stop")
       return statement("I can't seem to find stop {} on my lists, please try again".format(StopID))
 
+    departures = stop.all_departures()
+    buses = list(set(d.route for d in departures))
+
+    if len(buses) == 1:
+      newStop = dict(code=stop.code, name=stop.name, buses=[buses[0]])
+      return updateStopList(session.user.userId, newStop)
+    else:
+      session.attributes[STOPID_KEY] = stop.code
+      session.attributes[STOPNAME_KEY] = stop.name
+      return question("Bus {} stops in stop {}. Please tell me which one to add by saying, add bus 9".format(getSentence(buses), StopID))
+
+@ask.intent("AddBus")
+def addBus(BusID):
+  if BusID is None:
+    return statement(SORRY)
+
+  if STOPID_KEY not in session.attributes:
+    return statement(SORRY)
+
+  if STOPNAME_KEY not in session.attributes:
+    return statement(SORRY)
+
+  stop = Stop(TOKEN, session.attributes[STOPID_KEY], session.attributes[STOPID_KEY])
+  departures = stop.all_departures()
+  buses = list(set(d.route for d in departures))
+
+  if BusID not in buses:
+    return statement("I can't seem to find bus {} on my lists, please try again".format(BusID))
+  else:
+    newStop = dict(code=stop.code, name=session.attributes[STOPNAME_KEY], buses=[BusID])
+    return updateStopList(session.user.userId, newStop)
+
+@ask.intent("RemoveBus")
+def removeBus(BusID):
+    if BusID is None:
+      return statement(SORRY)
 
     response = dynamodb_table.query(KeyConditionExpression=Key('userId').eq(session.user.userId))
 
-    if response and len(response["Items"]) > 0:
-      stops = response["Items"][0]['stops']
-    else:
-      stops = {}
+    if not response or len(response["Items"]) == 0 or 'stops' not in response["Items"][0]:
+      return statement("Please add a stop first")
 
-    stops[stop.code] = {
-      'code': stop.code,
-      'name': stop.name,
-    }
+    stops = response["Items"][0]['stops']
+
+    deleteStop = None
+    for s in stops:
+      if "buses" in s and BusID in s["buses"]:
+        s["buses"].remove("s")
+        if len(s["buses"]) == 0:
+          deleteStop = True
+        break
+
+    if deleteStop:
+      stops.pop(StopID, None)
 
     response = dynamodb_table.update_item(
         Key={
@@ -101,51 +173,25 @@ def addStop(StopID):
         }
     )
 
-    logging.info("Set stop for user {}".format(session.user.userId))
-
     card_title = render_template('card_title')
-    responseText = render_template("add_stop", stop=stop.name)
-    return statement(responseText).simple_card(card_title, responseText)
-
-@ask.intent("RemoveStop")
-def removeStop(StopID):
-    if StopID is None:
-      return statement(SORRY)
-
-    response = dynamodb_table.query(KeyConditionExpression=Key('userId').eq(session.user.userId))
-
-    if not response or len(response["Items"]) == 0 or 'stops' not in response["Items"][0]:
-      return statement("Please add a stop first")
-
-    stops = response["Items"][0]['stops']
-    if StopID in stops:
-      stops.pop(StopID, None)
-      response = dynamodb_table.update_item(
-          Key={
-              'userId': session.user.userId
-          },
-          UpdateExpression="set stops = :s",
-          ExpressionAttributeValues={
-              ':s': stops
-          }
-      )
-
-    logging.info("Removed stop for user {}".format(session.user.userId))
-    card_title = render_template('card_title')
-    responseText = render_template("remove_stop", stop=stop.name)
+    responseText = render_template("remove_bus", bus=BusID)
     return statement("Ok").simple_card(card_title, responseText)
 
-@ask.intent("ListStops")
-def listStops():
+@ask.intent("ListBuses")
+def listBuses():
     response = dynamodb_table.query(KeyConditionExpression=Key('userId').eq(session.user.userId))
     if not response:
       return statement("You don't have any stops")
 
     stops = response["Items"][0]['stops']
-    stop_ids = [s for s in stops]
+    print(stops)
+    buses = []
+    for s in stops:
+      if 'buses' in stops[s] and len(stops[s]) > 0:
+        buses += stops[s]["buses"]
 
     card_title = render_template('card_title')
-    responseText = render_template("list_stops", stops=", ".join(stop_ids))
+    responseText = render_template("list_buses", buses=getSentence(buses))
     return statement(responseText).simple_card(card_title, responseText)
 
 

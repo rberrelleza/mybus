@@ -5,9 +5,12 @@ AddStop add {StopID}
 AddStop set stop {StopID}
 AddStop set {StopID}
 
-RemoveStop remove stop {StopID}
-RemoveStop remove {StopID}
+AddBus add bus {BusID}
+AddBus set bus {BusID}
 
-ListStops list stops
-ListStops list my stops
-ListStops my stops
+RemoveBus remove bus {BusID}
+RemoveBus remove {BusID}
+
+ListBuses list buses
+ListBuses list my buses
+ListBuses my buses
