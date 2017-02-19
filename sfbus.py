@@ -138,6 +138,7 @@ def addBus(BusID):
   if STOPNAME_KEY not in session.attributes:
     return statement(SORRY)
 
+  BusID = BusID.upper()
   stop = Stop(TOKEN, session.attributes[STOPID_KEY], session.attributes[STOPID_KEY])
   departures = stop.all_departures()
   buses = list(set(d.route for d in departures))
@@ -152,7 +153,7 @@ def addBus(BusID):
 def removeBus(BusID):
     if BusID is None:
       return statement(SORRY)
-
+    BusID = BusID.upper()
     response = dynamodb_table.query(KeyConditionExpression=Key('userId').eq(session.user.userId))
 
     if isResponseEmpty(response):
@@ -164,6 +165,7 @@ def removeBus(BusID):
     updateDynamo = False
 
     logging.debug("Initial stops {}".format(stops))
+
     for s in stops:
       if "buses" in stops[s] and BusID in stops[s]["buses"]:
         logging.debug("Deleting {} from stop {}".format(BusID, s))
@@ -189,9 +191,11 @@ def removeBus(BusID):
           }
       )
 
-    card_title = render_template('card_title')
-    responseText = render_template("remove_bus", bus=BusID)
-    return statement("Ok").simple_card(card_title, responseText)
+      card_title = render_template('card_title')
+      responseText = render_template("remove_bus", bus=BusID)
+      return statement("Ok").simple_card(card_title, responseText)
+    else:
+      return statement("Bus {} was not on your list".format(BusID))
 
 @ask.intent("ListBuses")
 def listBuses():
