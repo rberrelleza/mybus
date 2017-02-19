@@ -1,0 +1,5 @@
+card_title: My Bus
+add_stop: Added {{ stop }} to your list of stops
+remove_stop: Removed {{ stop }} from your list of stops
+list_stops: |
+   Your stops are: {{ stops }}

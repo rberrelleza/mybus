@@ -30,35 +30,41 @@ dynamodb_table = dynamodb.Table("sfbus")
 
 @ask.launch
 def getBusTimes():
+    card_title = render_template('card_title')
+    reponseStatement = None
+
     response = dynamodb_table.query(KeyConditionExpression=Key('userId').eq(session.user.userId))
     if not response or len(response["Items"]) == 0:
-      return statement("Please add a stop first")
-
-    stops = []
-    stop_texts = []
-    for key in response["Items"][0]['stops']:
-      s = response["Items"][0]['stops'][key]
-      logging.error(s)
-      stop = Stop(TOKEN, s["name"], s["code"])
-
-      if "route" in s:
-        deps = stop.next_departures(s["route"])
-      else:
-        deps = stop.all_departures()
-      departures = []
-      for d in deps:
-        if len(d.times) > 0:
-            readable_departure_times = "{} and {}".format(
-                ", ".join([str(t) for t in d.times[:-1]]),
-                            d.times[-1])
-        departures.append(TIME_TEMPLATE.format(d.route, readable_departure_times))
-      stop_texts.append(STOP_TEMPLATE.format(stop.name, ", ".join(departures)))
-
-    if len(departures) == 0:
-        return statement("Couldn't get information about the requested stops, please try again")
+      reponseStatement = "Please add a stop first"
     else:
-        return statement("; ".join(stop_texts))
+      stops = []
+      stop_texts = []
+      for key in response["Items"][0]['stops']:
+        s = response["Items"][0]['stops'][key]
+        logging.error(s)
+        stop = Stop(TOKEN, s["name"], s["code"])
 
+        if "route" in s:
+          deps = stop.next_departures(s["route"])
+        else:
+          deps = stop.all_departures()
+        departures = []
+        for d in deps:
+          if len(d.times) > 0:
+              readable_departure_times = "{}".format(d.times[0])
+              if len(d.times) > 1:
+                readable_departure_times = "{} and {}".format(readable_departure_times, d.times[1])
+
+          departures.append(TIME_TEMPLATE.format(d.route, readable_departure_times))
+        stop_texts.append(STOP_TEMPLATE.format(stop.name, ", ".join(departures)))
+
+      if len(departures) == 0:
+          reponseStatement = "Couldn't get information about the requested stops, please try again"
+      else:
+          reponseStatement = "; ".join(stop_texts)
+
+
+    return statement(reponseStatement).simple_card(card_title, "\n".join(stop_texts))
 
 @ask.intent("AddStop")
 def addStop(StopID):
@@ -96,7 +102,10 @@ def addStop(StopID):
     )
 
     logging.info("Set stop for user {}".format(session.user.userId))
-    return statement("I added {} to your list of stops".format(stop.name))
+
+    card_title = render_template('card_title')
+    responseText = render_template("add_stop", stop=stop.name)
+    return statement(responseText).simple_card(card_title, responseText)
 
 @ask.intent("RemoveStop")
 def removeStop(StopID):
@@ -122,7 +131,9 @@ def removeStop(StopID):
       )
 
     logging.info("Removed stop for user {}".format(session.user.userId))
-    return statement("Ok")
+    card_title = render_template('card_title')
+    responseText = render_template("remove_stop", stop=stop.name)
+    return statement("Ok").simple_card(card_title, responseText)
 
 @ask.intent("ListStops")
 def listStops():
@@ -133,7 +144,9 @@ def listStops():
     stops = response["Items"][0]['stops']
     stop_ids = [s for s in stops]
 
-    return statement("Your stops are {}".format(", ".join(stop_ids)))
+    card_title = render_template('card_title')
+    responseText = render_template("list_stops", stops=", ".join(stop_ids))
+    return statement(responseText).simple_card(card_title, responseText)
 
 
 if __name__ == '__main__':
