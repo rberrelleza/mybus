@@ -1,0 +1,13 @@
+GetMyBus next bus
+
+AddStop add stop {StopID}
+AddStop add {StopID}
+AddStop set stop {StopID}
+AddStop set {StopID}
+
+RemoveStop remove stop {StopID}
+RemoveStop remove {StopID}
+
+ListStops list stops
+ListStops list my stops
+ListStops my stops

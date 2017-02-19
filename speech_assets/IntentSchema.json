@@ -1,0 +1,31 @@
+{
+  "intents": [
+    {
+      "intent": "GetMyBus",
+      "slots": []
+    },
+    {
+      "intent": "AddStop",
+      "slots": [
+        {
+          "name": "StopID",
+          "type": "AMAZON.NUMBER"
+        }
+      ]
+    },
+    {
+      "intent": "RemoveStop",
+      "slots": [
+        {
+          "name": "StopID",
+          "type": "AMAZON.NUMBER"
+        }
+      ]
+    },
+    {
+      "intent": "ListStops",
+      "slots": [
+      ]
+    }
+  ]
+}
