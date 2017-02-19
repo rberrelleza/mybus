@@ -12,6 +12,7 @@ from flask_ask import Ask, statement, question, session
 TOKEN = os.getenv("FIVEONEONE_TOKEN")
 DYNAMO_ENDPOINT = os.getenv("DYNAMO_ENDPOINT", None)
 DYNAMO_REGION = os.getenv("DYNAMO_REGION", "us-east-1")
+NO_ROUTES = "Please add a bus stop first by saying 'Alexa, open my bus and add stop 15419"
 TIME_TEMPLATE = "Bus {0} is coming in {1} minutes"
 STOP_TEMPLATE = "At {} {}"
 SORRY = "Sorry, I'm having problems right now, please try again later"
@@ -29,6 +30,14 @@ else:
   dynamodb = boto3.resource('dynamodb', region_name=DYNAMO_REGION)
 
 dynamodb_table = dynamodb.Table("sfbus")
+
+
+def isResponseEmpty(response):
+  if not response or len(response["Items"]) == 0 or "stops" not in response["Items"][0] or \
+    len(response["Items"][0]["stops"]) == 0:
+      return True
+
+  return False
 
 def updateStopList(userId, newStop):
   response = dynamodb_table.query(KeyConditionExpression=Key('userId').eq(userId))
@@ -73,8 +82,8 @@ def getBusTimes():
     reponseStatement = None
 
     response = dynamodb_table.query(KeyConditionExpression=Key('userId').eq(session.user.userId))
-    if not response or len(response["Items"]) == 0:
-      reponseStatement = "Please add a stop first"
+    if isResponseEmpty(response):
+      reponseStatement = NO_ROUTES
     else:
       stops = []
       departures = []
@@ -93,8 +102,7 @@ def getBusTimes():
       else:
           reponseStatement = "; ".join(departures)
 
-
-    return statement(reponseStatement).simple_card(card_title, "\n".join(departures))
+    return statement(reponseStatement).simple_card(card_title, reponseStatement)
 
 @ask.intent("AddStop")
 def addStop(StopID):
@@ -147,31 +155,35 @@ def removeBus(BusID):
 
     response = dynamodb_table.query(KeyConditionExpression=Key('userId').eq(session.user.userId))
 
-    if not response or len(response["Items"]) == 0 or 'stops' not in response["Items"][0]:
-      return statement("Please add a stop first")
+    if isResponseEmpty(response):
+      return statement(NO_ROUTES)
 
     stops = response["Items"][0]['stops']
 
     deleteStop = None
+    updateDynamo = False
+
     for s in stops:
-      if "buses" in s and BusID in s["buses"]:
-        s["buses"].remove("s")
-        if len(s["buses"]) == 0:
-          deleteStop = True
+      if "buses" in stops[s] and BusID in stops[s]["buses"]:
+        stops[s]["buses"].remove(BusID)
+        updateDynamo = True
+        if len(stops[s]["buses"]) == 0:
+          deleteStop = s
         break
 
     if deleteStop:
-      stops.pop(StopID, None)
+      stops.pop(deleteStop, None)
 
-    response = dynamodb_table.update_item(
-        Key={
-            'userId': session.user.userId
-        },
-        UpdateExpression="set stops = :s",
-        ExpressionAttributeValues={
-            ':s': stops
-        }
-    )
+    if updateDynamo:
+      response = dynamodb_table.update_item(
+          Key={
+              'userId': session.user.userId
+          },
+          UpdateExpression="set stops = :s",
+          ExpressionAttributeValues={
+              ':s': stops
+          }
+      )
 
     card_title = render_template('card_title')
     responseText = render_template("remove_bus", bus=BusID)
@@ -180,8 +192,8 @@ def removeBus(BusID):
 @ask.intent("ListBuses")
 def listBuses():
     response = dynamodb_table.query(KeyConditionExpression=Key('userId').eq(session.user.userId))
-    if not response:
-      return statement("You don't have any stops")
+    if isResponseEmpty(response):
+      return statement(NO_ROUTES)
 
     stops = response["Items"][0]['stops']
     print(stops)
