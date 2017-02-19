@@ -18,7 +18,7 @@
       "slots": [
         {
           "name": "BusID",
-          "type": "AMAZON.NUMBER"
+          "type": "LIST_OF_ROUTES"
         }
       ]
     },
@@ -27,7 +27,7 @@
       "slots": [
         {
           "name": "BusID",
-          "type": "AMAZON.NUMBER"
+          "type": "LIST_OF_ROUTES"
         }
       ]
     },

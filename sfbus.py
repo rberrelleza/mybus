@@ -163,9 +163,12 @@ def removeBus(BusID):
     deleteStop = None
     updateDynamo = False
 
+    logging.debug("Initial stops {}".format(stops))
     for s in stops:
       if "buses" in stops[s] and BusID in stops[s]["buses"]:
+        logging.debug("Deleting {} from stop {}".format(BusID, s))
         stops[s]["buses"].remove(BusID)
+        logging.debug("Deleted {}? {}".format(BusID, stops[s]["buses"]))
         updateDynamo = True
         if len(stops[s]["buses"]) == 0:
           deleteStop = s
@@ -175,6 +178,7 @@ def removeBus(BusID):
       stops.pop(deleteStop, None)
 
     if updateDynamo:
+      logging.debug("Updating dynamo with {}".format(stops))
       response = dynamodb_table.update_item(
           Key={
               'userId': session.user.userId
