@@ -165,10 +165,13 @@ def getBusTimes():
             stop = Stop(TOKEN, s["name"], s["code"])
             if "buses" in s:
                 for r in s["buses"]:
-                    d = stop.next_departures(r)
-                    readable_departure_times = getSentence(d.times)
-                    departures.append(
-                        dict(bus=d.route, departures=readable_departure_times))
+                    try:
+                        d = stop.next_departures(r)
+                        readable_departure_times = getSentence(d.times)
+                        departures.append(
+                            dict(bus=d.route, departures=readable_departure_times))
+                    except:
+                        log.exception("Failed to get departures for %s", r)
 
         if len(departures) == 0:
             return statement(render_template("get_departures_failed"))
@@ -185,7 +188,8 @@ def addStop(StopID):
     Adds a stop to the list of stops for the user invoking the skill
     """
     if StopID is None:
-        return askToAddAStop()
+        return question(render_template("no_stop_id")).reprompt(
+            render_template("no_stop_id_reprompt"))
 
     stop = Stop(TOKEN, StopID, StopID)
 
@@ -217,9 +221,12 @@ def addBus(BusID):
     """
     Adds a bus to the list of stops for the user invoking the skill
     """
-    if BusID is None or STOPID_KEY not in session.attributes or \
+    if STOPID_KEY not in session.attributes or \
             STOPNAME_KEY not in session.attributes:
         return askToAddAStop()
+
+    if BusID is None:
+        return question(render_template("no_bus_id")).reprompt("no_bus_id_reprompt")
 
     BusID = BusID.upper()
     stop = Stop(
@@ -228,7 +235,8 @@ def addBus(BusID):
     buses = session.attributes[BUSES_KEY].split(",")
 
     if BusID not in buses:
-        return question(render_template("bad_route", bus=BusID))
+        return question(render_template("bad_route", bus=BusID)).reprompt(
+            render_template("bad_route", bus=BusID))
     else:
         newStop = dict(
             code=stop.code, name=session.attributes[STOPNAME_KEY], buses=[BusID])
@@ -241,7 +249,8 @@ def removeBus(BusID):
     Removes the bus from the list of buses for the user invoking the skill
     """
     if BusID is None:
-        return question(render_template("remove_no_bus_id"))
+        return question(render_template("remove_no_bus_id")).reprompt(
+            render_template("remove_no_bus_id_reprompt"))
 
     BusID = BusID.upper()
     response = dynamodb_table.query(
@@ -328,6 +337,7 @@ def session_ended():
     return "", 200
 
 if __name__ == '__main__':
+    logging.info("Starting")
     if not TOKEN:
         raise Exception("Set the FIVEONEONE_TOKEN env var before launching")
     app.run(debug=True)
