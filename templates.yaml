@@ -1,35 +1,47 @@
 card_title: My Bus
 
 add_stop_question: |
-  Buses {{ buses }} stops in stop {{ stop }}. Please tell me which one to add by saying: Add bus 9
+  I can't seem to find stop {{ stop }} on my lists, please try again with a valid muni stop by saying: Add stop 5
 
 add_stop_reprompt: |
-  Please tell me which bus to add by saying: Add bus 9
+  I didn't quite get that. Please tell me which stop to add by saying: Add stop 5
 
-add_stop_success: Added bus {{ route }} on stop {{ stop }} to your list of stops
+add_bus_question: |
+  Buses {{ buses }} stop in stop {{ stop }}. Please tell me which one to add by saying: Add bus 9
 
-get_departures_failed: I couldn't get dpearture information, please try again
+add_bus_reprompt: |
+  I didn't quite get that. Please tell me which bus to add by saying: Add bus 9
+
+add_bus_success: Added bus {{ route }} on stop {{ stop }} to your list of buses
+
+get_departures_failed: |
+  I couldn't get departure information, please try again by saying: Alexa, open my bus.
 
 get_departures_success: |
-   {% for d in departures %}Bus {{ d.bus }} is coming in {{ d.departures }} minutes. {% endfor %}
+   {% for d in departures %} Bus {{ d.bus }} is coming in {{ d.departures }} minutes. {% endfor %}
 
 list_buses: Your buses are {{ buses }}
 
 no_bus_stop: |
-  Please add a bus stop first by saying: Alexa, open my bus and add stop 5
+  It seems like you don't have any buses on your list. Please add a bus stop first by saying: add stop 5
+
+no_bus_stop_reprompt: |
+  I didn't quite get that. Please add a bus stop first by saying: add stop 5
 
 no_bus_id: |
-  I couldn't understand your request. Please add a bus stop  by saying: Alexa, open my bus and add stop 5
+  I couldn't understand your request. Please add a bus stop by saying: Alexa, open my bus and add stop 5
 
 remove_no_bus_id: |
-  I couldn't understand your request. Please remove a bus by saying: Alexa, remove bus 9
+  I couldn't understand your request. Please remove a bus by saying: remove bus 9
 
-remove_no_buses: You don't have any buses to remove
+remove_no_buses: You don't have any buses to remove.
 
 remove_success: I removed bus {{ bus }} from your list
 
 remove_no_bus_in_list: Bus {{ bus }} was not on your list
 
-bad_route: I can't find bus {{ bus }} on my lists, please try again
+bad_route: I can't find bus {{ bus }} on my lists, please try again.
 
-sorry:  Sorry, I'm having problems right now, please try again later
+sorry:  Sorry, I'm having problems right now, please try again later.
+
+goodbye: Goodbye.

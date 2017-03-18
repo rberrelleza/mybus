@@ -1,15 +1,19 @@
+#!/usr/bin/env python
+
+"""
+Alexa skill that queries the 511.org service for incoming bus times in SF
+"""
+
 import json
 import logging
 import os
 
 import boto3
 from boto3.dynamodb.conditions import Key
-from fiveoneone.route import Route
 from fiveoneone.stop import Stop
-from fiveoneone.agency import Agency
 from flask import Flask, render_template, request
-from flask_ask import Ask, statement, question, session
 from flask_ask import request as ask_request
+from flask_ask import Ask, question, session, statement
 from voicelabs import VoiceInsights
 
 TOKEN = os.getenv("FIVEONEONE_TOKEN")
@@ -18,9 +22,13 @@ DYNAMO_REGION = os.getenv("DYNAMO_REGION", "us-east-1")
 LOGLEVEL = os.getenv("LOGLEVEL", "INFO")
 STOPID_KEY = "stopid"
 STOPNAME_KEY = "stopname"
+BUSES_KEY = "buses"
 
+# pylint: disable=C0103
 app = Flask(__name__)
 app.config["ASK_APPLICATION_ID"] = os.getenv("APPLICATION_ID")
+
+# pylint: disable=C0103
 ask = Ask(app, "/")
 
 logging.getLogger("flask_ask").setLevel(LOGLEVEL)
@@ -40,11 +48,17 @@ vi = VoiceInsights()
 
 
 def before_request():
+    """
+    Initialize the voice insights tracker if the token is set
+    """
     if vi_apptoken:
         vi.initialize(vi_apptoken, json.loads(request.data)['session'])
 
 
 def after_request(response):
+    """
+    Send tracking information to voice insights if the token is set
+    """
     if vi_apptoken:
         intent_name = ask_request.type
         if ask_request.intent:
@@ -54,7 +68,7 @@ def after_request(response):
             vi.track(intent_name,
                      ask_request,
                      json.loads(response.get_data())['response']['outputSpeech']['text'])
-        except Exception as ex:
+        except:
             log.exception("Failed to send analytics")
 
     return response
@@ -64,6 +78,9 @@ app.before_request(before_request)
 
 
 def isResponseEmpty(response):
+    """
+    Checks if the response from dynamodb doesn't contain any stops
+    """
     if not response or len(response["Items"]) == 0 or "stops" not in response["Items"][0] or \
             len(response["Items"][0]["stops"]) == 0:
         return True
@@ -71,7 +88,18 @@ def isResponseEmpty(response):
     return False
 
 
+def askToAddAStop():
+    """
+    Starts the flow that asks the invoker to add a bus stop and bus number
+    """
+    return question(render_template("no_bus_stop")).reprompt(
+        render_template("no_bus_stop_reprompt"))
+
+
 def updateStopList(userId, newStop):
+    """
+    Updates the list of stops for the user in the dynamodb table
+    """
     response = dynamodb_table.query(
         KeyConditionExpression=Key('userId').eq(userId))
 
@@ -100,11 +128,14 @@ def updateStopList(userId, newStop):
 
     card_title = render_template('card_title')
     responseText = render_template(
-        "add_stop_success", stop=newStop['code'], route=",".join(newStop['buses']))
+        "add_bus_success", stop=newStop['code'], route=",".join(newStop['buses']))
     return statement(responseText).simple_card(card_title, responseText)
 
 
 def getSentence(words):
+    """
+    Forms a sentence from a list of words. If more than one element, the last one will have an 'and'
+    """
     if len(words) == 0:
         return ""
     elif len(words) == 1:
@@ -114,16 +145,19 @@ def getSentence(words):
 
 
 @ask.launch
+@ask.intent("GetMyBus")
 def getBusTimes():
+    """
+    Returns the incoming times of the stops configured for the user. If not configured,
+    it prompts the user to add a stop.
+    """
     card_title = render_template('card_title')
-    responseStatement = None
 
     response = dynamodb_table.query(
         KeyConditionExpression=Key('userId').eq(session.user.userId))
     if isResponseEmpty(response):
-        responseStatement = render_template("no_bus_stop")
+        return askToAddAStop()
     else:
-        stops = []
         departures = []
 
         for key in response["Items"][0]['stops']:
@@ -137,25 +171,30 @@ def getBusTimes():
                         dict(bus=d.route, departures=readable_departure_times))
 
         if len(departures) == 0:
-            responseStatement = render_template("get_departures_failed")
+            return statement(render_template("get_departures_failed"))
         else:
             responseStatement = render_template(
                 "get_departures_success", departures=departures)
 
-    return statement(responseStatement).simple_card(card_title, responseStatement)
+            return statement(responseStatement).simple_card(card_title, responseStatement)
 
 
 @ask.intent("AddStop")
 def addStop(StopID):
+    """
+    Adds a stop to the list of stops for the user invoking the skill
+    """
     if StopID is None:
-        return statement(render_template("no_bus_stop"))
+        return askToAddAStop()
 
     stop = Stop(TOKEN, StopID, StopID)
+
     try:
         stop.load()
-    except Exception as ex:
-        log.exception("error loadding the stop")
-        return statement("I can't seem to find stop {} on my lists, please try again".format(StopID))
+    except:
+        log.exception("error loading the stop")
+        return question(render_template("add_stop_question", stop=StopID)).reprompt(
+            render_template("add_stop_reprompt"))
 
     departures = stop.all_departures()
     buses = list(set(d.route for d in departures))
@@ -166,24 +205,30 @@ def addStop(StopID):
     else:
         session.attributes[STOPID_KEY] = stop.code
         session.attributes[STOPNAME_KEY] = stop.name
+        session.attributes[BUSES_KEY] = ",".join(buses)
 
-        return question(render_template("add_stop_question", buses=getSentence(buses), stop=StopID)).reprompt(
-            render_template("add_stop_reprompt"))
+        return question(
+            render_template("add_bus_question", buses=getSentence(buses), stop=StopID)).reprompt(
+                render_template("add_bus_reprompt"))
 
 
 @ask.intent("AddBus")
 def addBus(BusID):
-    if BusID is None or STOPID_KEY not in session.attributes or STOPNAME_KEY not in session.attributes:
-        return statement(render_template("no_bus_stop"))
+    """
+    Adds a bus to the list of stops for the user invoking the skill
+    """
+    if BusID is None or STOPID_KEY not in session.attributes or \
+            STOPNAME_KEY not in session.attributes:
+        return askToAddAStop()
 
     BusID = BusID.upper()
     stop = Stop(
         TOKEN, session.attributes[STOPID_KEY], session.attributes[STOPID_KEY])
-    departures = stop.all_departures()
-    buses = list(set(d.route for d in departures))
+
+    buses = session.attributes[BUSES_KEY].split(",")
 
     if BusID not in buses:
-        return statement(render_template("bad_route", bus=BusID))
+        return question(render_template("bad_route", bus=BusID))
     else:
         newStop = dict(
             code=stop.code, name=session.attributes[STOPNAME_KEY], buses=[BusID])
@@ -192,8 +237,11 @@ def addBus(BusID):
 
 @ask.intent("RemoveBus")
 def removeBus(BusID):
+    """
+    Removes the bus from the list of buses for the user invoking the skill
+    """
     if BusID is None:
-        return statement(render_template("remove_no_bus_id"))
+        return question(render_template("remove_no_bus_id"))
 
     BusID = BusID.upper()
     response = dynamodb_table.query(
@@ -207,13 +255,13 @@ def removeBus(BusID):
     deleteStop = None
     updateDynamo = False
 
-    log.debug("Initial stops {}".format(stops))
+    log.debug("Initial stops %s", stops)
 
     for s in stops:
         if "buses" in stops[s] and BusID in stops[s]["buses"]:
-            log.debug("Deleting {} from stop {}".format(BusID, s))
+            log.debug("Deleting %s from stop %s", BusID, s)
             stops[s]["buses"].remove(BusID)
-            log.debug("Deleted {}? {}".format(BusID, stops[s]["buses"]))
+            log.debug("Deleted %s? %s", BusID, stops[s]["buses"])
             updateDynamo = True
             if len(stops[s]["buses"]) == 0:
                 deleteStop = s
@@ -223,7 +271,7 @@ def removeBus(BusID):
         stops.pop(deleteStop, None)
 
     if updateDynamo:
-        log.debug("Updating dynamo with {}".format(stops))
+        log.debug("Updating dynamo with %s", stops)
         response = dynamodb_table.update_item(
             Key={
                 'userId': session.user.userId
@@ -243,10 +291,14 @@ def removeBus(BusID):
 
 @ask.intent("ListBuses")
 def listBuses():
+    """
+    Lists all the buses configured for  the user invoking the skill
+    """
     response = dynamodb_table.query(
         KeyConditionExpression=Key('userId').eq(session.user.userId))
+
     if isResponseEmpty(response):
-        return statement(render_template("no_bus_stop"))
+        return askToAddAStop()
 
     stops = response["Items"][0]['stops']
     buses = []
@@ -259,8 +311,20 @@ def listBuses():
     return statement(responseText).simple_card(card_title, responseText)
 
 
+@ask.intent("AMAZON.CancelIntent")
+@ask.intent("AMAZON.StopIntent")
+def cancel():
+    """
+    Cancels the session
+    """
+    return statement(render_template("goodbye"))
+
+
 @ask.session_ended
 def session_ended():
+    """
+    Returns a 200 to mark that the session is over
+    """
     return "", 200
 
 if __name__ == '__main__':

@@ -35,6 +35,12 @@
       "intent": "ListBuses",
       "slots": [
       ]
+    },
+    {
+        "intent": "AMAZON.CancelIntent"
+    },
+    {
+        "intent": "AMAZON.StopIntent"
     }
   ]
 }
