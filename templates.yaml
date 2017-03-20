@@ -1,16 +1,16 @@
 card_title: My Bus
 
 add_stop_question: |
-  I can't seem to find stop {{ stop }} on my lists, please try again with a valid muni stop by saying: Add stop 5
+  I can't seem to find stop {{ stop }} on my lists, please try again with a valid muni stop.
 
 add_stop_reprompt: |
-  I didn't quite get that. Please tell me which stop to add by saying: Add stop 5
+  I didn't quite get that. Please try again with a valid muni stop.
 
 add_bus_question: |
-  Buses {{ buses }} stop in stop {{ stop }}. Please tell me which one to add by saying: Add bus 9
+  Buses {{ buses }} stop in stop {{ stop }}. Please tell me which bus to add by saying: Add bus {{ bus }}
 
 add_bus_reprompt: |
-  I didn't quite get that. Please tell me which bus to add by saying: Add bus 9
+  I didn't quite get that. Please tell me which bus to add.
 
 add_bus_success: Added bus {{ route }} on stop {{ stop }} to your list of buses
 
@@ -23,22 +23,22 @@ get_departures_success: |
 list_buses: Your buses are {{ buses }}
 
 no_bus_stop: |
-  It seems like you don't have any buses on your list. Please add a bus stop first by saying: add stop 5
+  It seems like you don't have any buses on your list. Please add a bus stop first by saying: Add stop one five six five one.
 
 no_bus_stop_reprompt: |
-  I didn't quite get that. Please add a bus stop first by saying: add stop 5
+  I didn't quite get that. Please add a bus stop first by saying: Add stop one five six five one.
 
 no_stop_id: |
-  I couldn't understand your request. Please add a bus stop by saying: Add stop 5
+  I couldn't understand your request. Please add a bus stop by saying: Add stop one five six five one
 
 no_stop_id_reprompt: |
-  Please add a bus stop by saying: Add stop 5
+  Please add a bus stop by saying: Add stop one five six five one.
 
 no_bus_id: |
-  I couldn't understand your request. Please add a bus by saying: Add bus 9
+  I couldn't understand your request. Please add a bus by saying: Add bus {{ bus }}
 
 no_bus_id_reprompt: |
-  Please add a bus by saying: Add bus 9
+  Please add a bus by saying: Add bus {{ bus }}
 
 remove_no_bus_id: |
   I couldn't understand your request. Please remove a bus by saying: remove bus 9
@@ -57,3 +57,5 @@ bad_route: I can't seem to find bus {{ bus }} on my lists, please try again .
 sorry:  Sorry, I'm having problems right now, please try again later.
 
 goodbye: Goodbye.
+
+help: My bus tells you when the next MUNI is coming to your favorite stops. You can get your next bus, add a stop, or remove a bus. What would you like to do?

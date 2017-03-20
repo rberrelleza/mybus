@@ -212,7 +212,7 @@ def addStop(StopID):
         session.attributes[BUSES_KEY] = ",".join(buses)
 
         return question(
-            render_template("add_bus_question", buses=getSentence(buses), stop=StopID)).reprompt(
+            render_template("add_bus_question", buses=getSentence(buses), stop=StopID, bus=buses[0])).reprompt(
                 render_template("add_bus_reprompt"))
 
 
@@ -222,17 +222,19 @@ def addBus(BusID):
     Adds a bus to the list of stops for the user invoking the skill
     """
     if STOPID_KEY not in session.attributes or \
-            STOPNAME_KEY not in session.attributes:
+            STOPNAME_KEY not in session.attributes or \
+            BUSES_KEY not in session.attributes:
         return askToAddAStop()
 
+    buses = session.attributes[BUSES_KEY].split(",")
+
     if BusID is None:
-        return question(render_template("no_bus_id")).reprompt("no_bus_id_reprompt")
+        return question(render_template("no_bus_id", bus=buses[0])).reprompt(
+            "no_bus_id_reprompt", bus=buses[0])
 
     BusID = BusID.upper()
     stop = Stop(
         TOKEN, session.attributes[STOPID_KEY], session.attributes[STOPID_KEY])
-
-    buses = session.attributes[BUSES_KEY].split(",")
 
     if BusID not in buses:
         return question(render_template("bad_route", bus=BusID)).reprompt(
@@ -327,6 +329,15 @@ def cancel():
     Cancels the session
     """
     return statement(render_template("goodbye"))
+
+
+@ask.intent("AMAZON.HelpIntent")
+def help():
+    """
+    Help
+    """
+    response = render_template("help")
+    return question(response).reprompt(response)
 
 
 @ask.session_ended
