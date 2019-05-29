@@ -14,7 +14,6 @@ from fiveoneone.stop import Stop
 from flask import Flask, render_template, request
 from flask_ask import request as ask_request
 from flask_ask import Ask, question, session, statement
-from voicelabs import VoiceInsights
 
 TOKEN = os.getenv("FIVEONEONE_TOKEN")
 DYNAMO_ENDPOINT = os.getenv("DYNAMO_ENDPOINT", None)
@@ -42,39 +41,6 @@ else:
     dynamodb = boto3.resource('dynamodb', region_name=DYNAMO_REGION)
 
 dynamodb_table = dynamodb.Table("sfbus")
-
-vi_apptoken = os.getenv("VI_APPTOKEN")
-vi = VoiceInsights()
-
-
-def before_request():
-    """
-    Initialize the voice insights tracker if the token is set
-    """
-    if vi_apptoken:
-        vi.initialize(vi_apptoken, json.loads(request.data)['session'])
-
-
-def after_request(response):
-    """
-    Send tracking information to voice insights if the token is set
-    """
-    if vi_apptoken:
-        intent_name = ask_request.type
-        if ask_request.intent:
-            intent_name = ask_request.intent.name
-
-        try:
-            vi.track(intent_name,
-                     ask_request,
-                     json.loads(response.get_data())['response']['outputSpeech']['text'])
-        except:
-            log.exception("Failed to send analytics")
-
-    return response
-
-app.after_request(after_request)
-app.before_request(before_request)
 
 
 def isResponseEmpty(response):
