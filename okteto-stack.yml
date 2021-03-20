@@ -1,0 +1,15 @@
+name: mybus
+services:
+  mybus:
+    image: okteto.dev/mybus
+    ports:
+    - 8080
+    public: true
+    build: .
+    environment:
+      - DYNAMO_ENDPOINT=http://dynamodb:8000
+      - FIVEONEONE_TOKEN=$FIVEONEONE_TOKEN
+  dynamodb:
+    image: amazon/dynamodb-local
+    ports:
+      - 8000

@@ -332,4 +332,5 @@ if __name__ == '__main__':
     logging.info("Starting")
     if not TOKEN:
         raise Exception("Set the FIVEONEONE_TOKEN env var before launching")
-    app.run(debug=True)
+    port = os.getenv("PORT", "5000")
+    app.run(debug=True, port=port, host="0.0.0.0")
