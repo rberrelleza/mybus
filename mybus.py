@@ -149,7 +149,7 @@ def getBusTimes():
                         readable_departure_times = getSentence(d.times)
                         departures.append(
                             dict(bus=d.route, departures=readable_departure_times))
-                    except:
+                    except Exception:
                         log.exception("Failed to get departures for %s", r)
 
         if len(departures) == 0:
@@ -174,7 +174,7 @@ def addStop(StopID):
 
     try:
         stop.load()
-    except:
+    except Exception:
         log.exception("error loading the stop")
         return question(render_template("add_stop_question", stop=StopID)).reprompt(
             render_template("add_stop_reprompt"))
