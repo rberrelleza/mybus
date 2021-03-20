@@ -7,7 +7,7 @@ table = dynamodb.create_table(
     KeySchema=[
         {
             'AttributeName': 'userId',
-            'KeyType': 'HASH'  #Partition key
+            'KeyType': 'HASH'
         }
     ],
     AttributeDefinitions=[
