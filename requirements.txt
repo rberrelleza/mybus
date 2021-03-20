@@ -38,7 +38,7 @@ python-dateutil==2.6.0
 python-slugify==1.2.1
 PyYAML==3.12
 req==1.0.0
-requests==2.5.1
+requests==2.20.0
 rsa==3.4.2
 s3transfer==0.1.10
 six==1.10.0
