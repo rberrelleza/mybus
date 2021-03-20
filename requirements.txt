@@ -14,7 +14,7 @@ docutils==0.13.1
 durationpy==0.3
 enum34==1.1.6
 fiveoneone==0.4
-Flask==0.12
+Flask==1.0
 Flask-Ask==0.8.7
 future==0.17.1
 futures==3.0.5
