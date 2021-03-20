@@ -4,7 +4,6 @@
 Alexa skill that queries the 511.org service for incoming bus times in SF
 """
 
-import json
 import logging
 import os
 
@@ -14,8 +13,7 @@ from aws_xray_sdk.core import patcher, xray_recorder
 import boto3
 from boto3.dynamodb.conditions import Key
 from fiveoneone.stop import Stop
-from flask import Flask, render_template, request
-from flask_ask import request as ask_request
+from flask import Flask, render_template
 from flask_ask import Ask, question, session, statement
 
 
@@ -327,6 +325,7 @@ def session_ended():
     Returns a 200 to mark that the session is over
     """
     return "", 200
+
 
 if __name__ == '__main__':
     logging.info("Starting")
