@@ -1,7 +1,7 @@
 aniso8601==1.2.0
 appdirs==1.4.0
 argcomplete==1.8.2
-aws-xray-sdk==2.4.2
+aws-xray-sdk==2.6.0
 awscli==1.19.33
 base58==0.2.4
 boto3==1.4.4
