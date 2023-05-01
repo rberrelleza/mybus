@@ -1,5 +1,5 @@
 aws-xray-sdk==2.4.2
 boto3==1.17.32
 fiveoneone==0.6.0
-Flask==1.1.2
+Flask==2.3.2
 Flask-Ask==0.8.7
