@@ -1,12 +1,23 @@
-name: mybus
-autocreate: true
-image: okteto/python:3
-command: bash
-volumes:
-- /root/.cache/pip
-sync:
-- .:/usr/src/app
-forward:
-- 8080:8080
-reverse:
-- 9000:9000
+# Okteto manifest: `okteto deploy` builds the image and deploys the compose
+# stack; `okteto up mybus` opens a dev container with the source synced.
+deploy:
+  compose:
+    file: docker-compose.yml
+
+dev:
+  mybus:
+    image: golang:1.26
+    command: bash
+    workdir: /usr/src/app
+    sync:
+      - .:/usr/src/app
+    volumes:
+      - /go/pkg/mod
+      - /root/.cache/go-build
+    environment:
+      DYNAMO_ENDPOINT: http://dynamodb:8000
+      DYNAMO_CREATE_TABLE: "true"
+      AWS_ACCESS_KEY_ID: local
+      AWS_SECRET_ACCESS_KEY: local
+    forward:
+      - 8080:8080

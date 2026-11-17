@@ -1,0 +1,1376 @@
+{
+  "interactionModel": {
+    "languageModel": {
+      "invocationName": "my bus",
+      "intents": [
+        {
+          "name": "GetBusTimesIntent",
+          "slots": [],
+          "samples": [
+            "next bus",
+            "my next bus",
+            "when's my next bus",
+            "when is my next bus",
+            "when is the next bus",
+            "when's my bus",
+            "when is my bus coming",
+            "when's my bus coming",
+            "where's my bus",
+            "where is my bus",
+            "bus times",
+            "my bus times",
+            "check my bus",
+            "check my buses",
+            "how long until my bus",
+            "how long until the next bus",
+            "next muni",
+            "when's the next muni",
+            "arrival times",
+            "get my bus",
+            "get bus times",
+            "get my times"
+          ]
+        },
+        {
+          "name": "AddStopIntent",
+          "slots": [
+            {
+              "name": "StopID",
+              "type": "AMAZON.NUMBER",
+              "samples": [
+                "{StopID}",
+                "stop {StopID}",
+                "stop number {StopID}",
+                "it's {StopID}",
+                "it's stop {StopID}"
+              ]
+            },
+            {
+              "name": "BusID",
+              "type": "ROUTE",
+              "samples": [
+                "{BusID}",
+                "the {BusID}",
+                "bus {BusID}",
+                "the {BusID} bus",
+                "number {BusID}",
+                "add the {BusID}",
+                "add bus {BusID}"
+              ]
+            },
+            {
+              "name": "Agency",
+              "type": "AGENCY",
+              "samples": [
+                "{Agency}",
+                "the {Agency} one",
+                "the {Agency} stop",
+                "{Agency} stop"
+              ]
+            }
+          ],
+          "samples": [
+            "add stop {StopID}",
+            "add stop number {StopID}",
+            "add {StopID}",
+            "set stop {StopID}",
+            "set {StopID}",
+            "save stop {StopID}",
+            "my stop is {StopID}",
+            "stop {StopID}",
+            "stop number {StopID}",
+            "{StopID}",
+            "add {Agency} stop {StopID}",
+            "add {Agency} stop number {StopID}",
+            "add stop {StopID} on {Agency}",
+            "save {Agency} stop {StopID}",
+            "add bus {BusID}",
+            "add the {BusID}",
+            "set bus {BusID}",
+            "follow the {BusID}",
+            "follow bus {BusID}",
+            "add bus {BusID} at stop {StopID}",
+            "add the {BusID} at stop {StopID}",
+            "add the {BusID} at {Agency} stop {StopID}",
+            "add {Agency} bus {BusID} at stop {StopID}",
+            "add the {BusID} from stop {StopID}",
+            "add the {Agency} {BusID} at stop {StopID}"
+          ]
+        },
+        {
+          "name": "ListBusesIntent",
+          "slots": [],
+          "samples": [
+            "list buses",
+            "list my buses",
+            "my buses",
+            "list my stops",
+            "my stops",
+            "which buses do I have",
+            "which buses am I following",
+            "what buses am I following",
+            "what are my stops",
+            "what are my buses"
+          ]
+        },
+        {
+          "name": "RemoveBusIntent",
+          "slots": [
+            {
+              "name": "BusID",
+              "type": "ROUTE",
+              "samples": [
+                "{BusID}",
+                "the {BusID}",
+                "bus {BusID}"
+              ]
+            }
+          ],
+          "samples": [
+            "remove bus {BusID}",
+            "remove the {BusID}",
+            "remove {BusID}",
+            "delete bus {BusID}",
+            "delete the {BusID}",
+            "stop following the {BusID}",
+            "stop following bus {BusID}",
+            "forget the {BusID}",
+            "remove a bus",
+            "delete a bus"
+          ]
+        },
+        {
+          "name": "RemoveStopIntent",
+          "slots": [
+            {
+              "name": "StopID",
+              "type": "AMAZON.NUMBER",
+              "samples": [
+                "{StopID}",
+                "stop {StopID}",
+                "stop number {StopID}"
+              ]
+            }
+          ],
+          "samples": [
+            "remove stop {StopID}",
+            "remove stop number {StopID}",
+            "delete stop {StopID}",
+            "forget stop {StopID}",
+            "remove a stop",
+            "delete a stop"
+          ]
+        },
+        {
+          "name": "AMAZON.HelpIntent",
+          "samples": [
+            "how does this work",
+            "what can I say",
+            "how do I add a stop",
+            "where do I find my stop number"
+          ]
+        },
+        {
+          "name": "AMAZON.CancelIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.StopIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.NoIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.NavigateHomeIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.FallbackIntent",
+          "samples": []
+        }
+      ],
+      "types": [
+        {
+          "name": "ROUTE",
+          "values": [
+            {
+              "id": "1",
+              "name": {
+                "value": "1"
+              }
+            },
+            {
+              "id": "1AX",
+              "name": {
+                "value": "1AX",
+                "synonyms": [
+                  "1 A X",
+                  "1 A express"
+                ]
+              }
+            },
+            {
+              "id": "1BX",
+              "name": {
+                "value": "1BX",
+                "synonyms": [
+                  "1 B X",
+                  "1 B express"
+                ]
+              }
+            },
+            {
+              "id": "2",
+              "name": {
+                "value": "2"
+              }
+            },
+            {
+              "id": "5",
+              "name": {
+                "value": "5"
+              }
+            },
+            {
+              "id": "5R",
+              "name": {
+                "value": "5R",
+                "synonyms": [
+                  "5 rapid",
+                  "five rapid",
+                  "fulton rapid"
+                ]
+              }
+            },
+            {
+              "id": "6",
+              "name": {
+                "value": "6"
+              }
+            },
+            {
+              "id": "7",
+              "name": {
+                "value": "7"
+              }
+            },
+            {
+              "id": "7R",
+              "name": {
+                "value": "7R",
+                "synonyms": [
+                  "7 rapid",
+                  "seven rapid"
+                ]
+              }
+            },
+            {
+              "id": "7X",
+              "name": {
+                "value": "7X",
+                "synonyms": [
+                  "7 X",
+                  "7 express"
+                ]
+              }
+            },
+            {
+              "id": "8",
+              "name": {
+                "value": "8"
+              }
+            },
+            {
+              "id": "8AX",
+              "name": {
+                "value": "8AX",
+                "synonyms": [
+                  "8 A X",
+                  "8 A express"
+                ]
+              }
+            },
+            {
+              "id": "8BX",
+              "name": {
+                "value": "8BX",
+                "synonyms": [
+                  "8 B X",
+                  "8 B express"
+                ]
+              }
+            },
+            {
+              "id": "9",
+              "name": {
+                "value": "9"
+              }
+            },
+            {
+              "id": "9R",
+              "name": {
+                "value": "9R",
+                "synonyms": [
+                  "9 rapid",
+                  "nine rapid",
+                  "san bruno rapid"
+                ]
+              }
+            },
+            {
+              "id": "10",
+              "name": {
+                "value": "10"
+              }
+            },
+            {
+              "id": "12",
+              "name": {
+                "value": "12"
+              }
+            },
+            {
+              "id": "14",
+              "name": {
+                "value": "14"
+              }
+            },
+            {
+              "id": "14R",
+              "name": {
+                "value": "14R",
+                "synonyms": [
+                  "14 rapid",
+                  "fourteen rapid",
+                  "mission rapid"
+                ]
+              }
+            },
+            {
+              "id": "14X",
+              "name": {
+                "value": "14X",
+                "synonyms": [
+                  "14 X",
+                  "14 express"
+                ]
+              }
+            },
+            {
+              "id": "15",
+              "name": {
+                "value": "15"
+              }
+            },
+            {
+              "id": "18",
+              "name": {
+                "value": "18"
+              }
+            },
+            {
+              "id": "19",
+              "name": {
+                "value": "19"
+              }
+            },
+            {
+              "id": "21",
+              "name": {
+                "value": "21"
+              }
+            },
+            {
+              "id": "22",
+              "name": {
+                "value": "22"
+              }
+            },
+            {
+              "id": "23",
+              "name": {
+                "value": "23"
+              }
+            },
+            {
+              "id": "24",
+              "name": {
+                "value": "24"
+              }
+            },
+            {
+              "id": "25",
+              "name": {
+                "value": "25"
+              }
+            },
+            {
+              "id": "27",
+              "name": {
+                "value": "27"
+              }
+            },
+            {
+              "id": "28",
+              "name": {
+                "value": "28"
+              }
+            },
+            {
+              "id": "28R",
+              "name": {
+                "value": "28R",
+                "synonyms": [
+                  "28 rapid",
+                  "twenty eight rapid",
+                  "19th avenue rapid"
+                ]
+              }
+            },
+            {
+              "id": "29",
+              "name": {
+                "value": "29"
+              }
+            },
+            {
+              "id": "30",
+              "name": {
+                "value": "30"
+              }
+            },
+            {
+              "id": "30X",
+              "name": {
+                "value": "30X",
+                "synonyms": [
+                  "30 X",
+                  "30 express"
+                ]
+              }
+            },
+            {
+              "id": "31",
+              "name": {
+                "value": "31"
+              }
+            },
+            {
+              "id": "31AX",
+              "name": {
+                "value": "31AX",
+                "synonyms": [
+                  "31 A X",
+                  "31 A express"
+                ]
+              }
+            },
+            {
+              "id": "31BX",
+              "name": {
+                "value": "31BX",
+                "synonyms": [
+                  "31 B X",
+                  "31 B express"
+                ]
+              }
+            },
+            {
+              "id": "33",
+              "name": {
+                "value": "33"
+              }
+            },
+            {
+              "id": "35",
+              "name": {
+                "value": "35"
+              }
+            },
+            {
+              "id": "36",
+              "name": {
+                "value": "36"
+              }
+            },
+            {
+              "id": "37",
+              "name": {
+                "value": "37"
+              }
+            },
+            {
+              "id": "38",
+              "name": {
+                "value": "38"
+              }
+            },
+            {
+              "id": "38R",
+              "name": {
+                "value": "38R",
+                "synonyms": [
+                  "38 rapid",
+                  "thirty eight rapid",
+                  "geary rapid"
+                ]
+              }
+            },
+            {
+              "id": "38AX",
+              "name": {
+                "value": "38AX",
+                "synonyms": [
+                  "38 A X",
+                  "38 A express"
+                ]
+              }
+            },
+            {
+              "id": "38BX",
+              "name": {
+                "value": "38BX",
+                "synonyms": [
+                  "38 B X",
+                  "38 B express"
+                ]
+              }
+            },
+            {
+              "id": "39",
+              "name": {
+                "value": "39"
+              }
+            },
+            {
+              "id": "41",
+              "name": {
+                "value": "41"
+              }
+            },
+            {
+              "id": "43",
+              "name": {
+                "value": "43"
+              }
+            },
+            {
+              "id": "44",
+              "name": {
+                "value": "44"
+              }
+            },
+            {
+              "id": "45",
+              "name": {
+                "value": "45"
+              }
+            },
+            {
+              "id": "47",
+              "name": {
+                "value": "47"
+              }
+            },
+            {
+              "id": "48",
+              "name": {
+                "value": "48"
+              }
+            },
+            {
+              "id": "49",
+              "name": {
+                "value": "49"
+              }
+            },
+            {
+              "id": "52",
+              "name": {
+                "value": "52"
+              }
+            },
+            {
+              "id": "54",
+              "name": {
+                "value": "54"
+              }
+            },
+            {
+              "id": "55",
+              "name": {
+                "value": "55"
+              }
+            },
+            {
+              "id": "56",
+              "name": {
+                "value": "56"
+              }
+            },
+            {
+              "id": "57",
+              "name": {
+                "value": "57"
+              }
+            },
+            {
+              "id": "58",
+              "name": {
+                "value": "58"
+              }
+            },
+            {
+              "id": "66",
+              "name": {
+                "value": "66"
+              }
+            },
+            {
+              "id": "67",
+              "name": {
+                "value": "67"
+              }
+            },
+            {
+              "id": "76X",
+              "name": {
+                "value": "76X",
+                "synonyms": [
+                  "76 X",
+                  "76 express"
+                ]
+              }
+            },
+            {
+              "id": "81X",
+              "name": {
+                "value": "81X",
+                "synonyms": [
+                  "81 X",
+                  "81 express"
+                ]
+              }
+            },
+            {
+              "id": "82X",
+              "name": {
+                "value": "82X",
+                "synonyms": [
+                  "82 X",
+                  "82 express"
+                ]
+              }
+            },
+            {
+              "id": "83X",
+              "name": {
+                "value": "83X",
+                "synonyms": [
+                  "83 X",
+                  "83 express"
+                ]
+              }
+            },
+            {
+              "id": "88",
+              "name": {
+                "value": "88"
+              }
+            },
+            {
+              "id": "90",
+              "name": {
+                "value": "90"
+              }
+            },
+            {
+              "id": "91",
+              "name": {
+                "value": "91"
+              }
+            },
+            {
+              "id": "714",
+              "name": {
+                "value": "714"
+              }
+            },
+            {
+              "id": "E",
+              "name": {
+                "value": "E",
+                "synonyms": [
+                  "E Embarcadero"
+                ]
+              }
+            },
+            {
+              "id": "F",
+              "name": {
+                "value": "F",
+                "synonyms": [
+                  "F Market",
+                  "F line"
+                ]
+              }
+            },
+            {
+              "id": "J",
+              "name": {
+                "value": "J",
+                "synonyms": [
+                  "J Church"
+                ]
+              }
+            },
+            {
+              "id": "K",
+              "name": {
+                "value": "K",
+                "synonyms": [
+                  "K Ingleside"
+                ]
+              }
+            },
+            {
+              "id": "KT",
+              "name": {
+                "value": "KT",
+                "synonyms": [
+                  "K T"
+                ]
+              }
+            },
+            {
+              "id": "L",
+              "name": {
+                "value": "L",
+                "synonyms": [
+                  "L Taraval"
+                ]
+              }
+            },
+            {
+              "id": "M",
+              "name": {
+                "value": "M",
+                "synonyms": [
+                  "M Ocean View"
+                ]
+              }
+            },
+            {
+              "id": "N",
+              "name": {
+                "value": "N",
+                "synonyms": [
+                  "N Judah",
+                  "n judah"
+                ]
+              }
+            },
+            {
+              "id": "NX",
+              "name": {
+                "value": "NX",
+                "synonyms": [
+                  "N X",
+                  "N Express"
+                ]
+              }
+            },
+            {
+              "id": "S",
+              "name": {
+                "value": "S",
+                "synonyms": [
+                  "S shuttle"
+                ]
+              }
+            },
+            {
+              "id": "T",
+              "name": {
+                "value": "T",
+                "synonyms": [
+                  "T Third",
+                  "T Third Street"
+                ]
+              }
+            },
+            {
+              "id": "1T",
+              "name": {
+                "value": "1T",
+                "synonyms": [
+                  "1 T",
+                  "tempo",
+                  "one tempo"
+                ]
+              }
+            },
+            {
+              "id": "20",
+              "name": {
+                "value": "20"
+              }
+            },
+            {
+              "id": "26",
+              "name": {
+                "value": "26"
+              }
+            },
+            {
+              "id": "32",
+              "name": {
+                "value": "32"
+              }
+            },
+            {
+              "id": "34",
+              "name": {
+                "value": "34"
+              }
+            },
+            {
+              "id": "40",
+              "name": {
+                "value": "40"
+              }
+            },
+            {
+              "id": "46",
+              "name": {
+                "value": "46"
+              }
+            },
+            {
+              "id": "51A",
+              "name": {
+                "value": "51A",
+                "synonyms": [
+                  "51 A",
+                  "fifty one A"
+                ]
+              }
+            },
+            {
+              "id": "51B",
+              "name": {
+                "value": "51B",
+                "synonyms": [
+                  "51 B",
+                  "fifty one B"
+                ]
+              }
+            },
+            {
+              "id": "60",
+              "name": {
+                "value": "60"
+              }
+            },
+            {
+              "id": "62",
+              "name": {
+                "value": "62"
+              }
+            },
+            {
+              "id": "65",
+              "name": {
+                "value": "65"
+              }
+            },
+            {
+              "id": "68",
+              "name": {
+                "value": "68"
+              }
+            },
+            {
+              "id": "70",
+              "name": {
+                "value": "70"
+              }
+            },
+            {
+              "id": "71",
+              "name": {
+                "value": "71"
+              }
+            },
+            {
+              "id": "72",
+              "name": {
+                "value": "72"
+              }
+            },
+            {
+              "id": "72M",
+              "name": {
+                "value": "72M",
+                "synonyms": [
+                  "72 M"
+                ]
+              }
+            },
+            {
+              "id": "72R",
+              "name": {
+                "value": "72R",
+                "synonyms": [
+                  "72 R",
+                  "72 rapid",
+                  "seventy two rapid"
+                ]
+              }
+            },
+            {
+              "id": "73",
+              "name": {
+                "value": "73"
+              }
+            },
+            {
+              "id": "74",
+              "name": {
+                "value": "74"
+              }
+            },
+            {
+              "id": "76",
+              "name": {
+                "value": "76"
+              }
+            },
+            {
+              "id": "79",
+              "name": {
+                "value": "79"
+              }
+            },
+            {
+              "id": "80",
+              "name": {
+                "value": "80"
+              }
+            },
+            {
+              "id": "81",
+              "name": {
+                "value": "81"
+              }
+            },
+            {
+              "id": "83",
+              "name": {
+                "value": "83"
+              }
+            },
+            {
+              "id": "85",
+              "name": {
+                "value": "85"
+              }
+            },
+            {
+              "id": "86",
+              "name": {
+                "value": "86"
+              }
+            },
+            {
+              "id": "93",
+              "name": {
+                "value": "93"
+              }
+            },
+            {
+              "id": "94",
+              "name": {
+                "value": "94"
+              }
+            },
+            {
+              "id": "95",
+              "name": {
+                "value": "95"
+              }
+            },
+            {
+              "id": "96",
+              "name": {
+                "value": "96"
+              }
+            },
+            {
+              "id": "97",
+              "name": {
+                "value": "97"
+              }
+            },
+            {
+              "id": "98",
+              "name": {
+                "value": "98"
+              }
+            },
+            {
+              "id": "99",
+              "name": {
+                "value": "99"
+              }
+            },
+            {
+              "id": "200",
+              "name": {
+                "value": "200"
+              }
+            },
+            {
+              "id": "210",
+              "name": {
+                "value": "210"
+              }
+            },
+            {
+              "id": "212",
+              "name": {
+                "value": "212"
+              }
+            },
+            {
+              "id": "215",
+              "name": {
+                "value": "215"
+              }
+            },
+            {
+              "id": "217",
+              "name": {
+                "value": "217"
+              }
+            },
+            {
+              "id": "232",
+              "name": {
+                "value": "232"
+              }
+            },
+            {
+              "id": "239",
+              "name": {
+                "value": "239"
+              }
+            },
+            {
+              "id": "242",
+              "name": {
+                "value": "242"
+              }
+            },
+            {
+              "id": "251",
+              "name": {
+                "value": "251"
+              }
+            },
+            {
+              "id": "280",
+              "name": {
+                "value": "280"
+              }
+            },
+            {
+              "id": "339",
+              "name": {
+                "value": "339"
+              }
+            },
+            {
+              "id": "800",
+              "name": {
+                "value": "800"
+              }
+            },
+            {
+              "id": "801",
+              "name": {
+                "value": "801"
+              }
+            },
+            {
+              "id": "802",
+              "name": {
+                "value": "802"
+              }
+            },
+            {
+              "id": "805",
+              "name": {
+                "value": "805"
+              }
+            },
+            {
+              "id": "840",
+              "name": {
+                "value": "840"
+              }
+            },
+            {
+              "id": "851",
+              "name": {
+                "value": "851"
+              }
+            },
+            {
+              "id": "B",
+              "name": {
+                "value": "B"
+              }
+            },
+            {
+              "id": "CB",
+              "name": {
+                "value": "CB",
+                "synonyms": [
+                  "C B"
+                ]
+              }
+            },
+            {
+              "id": "DB",
+              "name": {
+                "value": "DB",
+                "synonyms": [
+                  "D B"
+                ]
+              }
+            },
+            {
+              "id": "G",
+              "name": {
+                "value": "G"
+              }
+            },
+            {
+              "id": "H",
+              "name": {
+                "value": "H"
+              }
+            },
+            {
+              "id": "LA",
+              "name": {
+                "value": "LA",
+                "synonyms": [
+                  "L A"
+                ]
+              }
+            },
+            {
+              "id": "NL",
+              "name": {
+                "value": "NL",
+                "synonyms": [
+                  "N L"
+                ]
+              }
+            },
+            {
+              "id": "NX1",
+              "name": {
+                "value": "NX1",
+                "synonyms": [
+                  "N X 1",
+                  "N X one"
+                ]
+              }
+            },
+            {
+              "id": "NX2",
+              "name": {
+                "value": "NX2",
+                "synonyms": [
+                  "N X 2"
+                ]
+              }
+            },
+            {
+              "id": "NX3",
+              "name": {
+                "value": "NX3",
+                "synonyms": [
+                  "N X 3"
+                ]
+              }
+            },
+            {
+              "id": "NX4",
+              "name": {
+                "value": "NX4",
+                "synonyms": [
+                  "N X 4"
+                ]
+              }
+            },
+            {
+              "id": "O",
+              "name": {
+                "value": "O"
+              }
+            },
+            {
+              "id": "P",
+              "name": {
+                "value": "P"
+              }
+            },
+            {
+              "id": "SB",
+              "name": {
+                "value": "SB",
+                "synonyms": [
+                  "S B"
+                ]
+              }
+            },
+            {
+              "id": "U",
+              "name": {
+                "value": "U"
+              }
+            },
+            {
+              "id": "V",
+              "name": {
+                "value": "V"
+              }
+            },
+            {
+              "id": "W",
+              "name": {
+                "value": "W"
+              }
+            },
+            {
+              "id": "Z",
+              "name": {
+                "value": "Z"
+              }
+            }
+          ]
+        },
+        {
+          "name": "AGENCY",
+          "values": [
+            {
+              "id": "SF",
+              "name": {
+                "value": "Muni",
+                "synonyms": [
+                  "S F Muni",
+                  "SF Muni",
+                  "San Francisco",
+                  "San Francisco Muni",
+                  "S F",
+                  "the city"
+                ]
+              }
+            },
+            {
+              "id": "AC",
+              "name": {
+                "value": "AC Transit",
+                "synonyms": [
+                  "A C Transit",
+                  "A C",
+                  "AC",
+                  "Alameda County",
+                  "Alameda",
+                  "East Bay",
+                  "Oakland",
+                  "Berkeley"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "modelConfiguration": {
+        "fallbackIntentSensitivity": {
+          "level": "LOW"
+        }
+      }
+    },
+    "dialog": {
+      "delegationStrategy": "SKILL_RESPONSE",
+      "intents": [
+        {
+          "name": "AddStopIntent",
+          "delegationStrategy": "SKILL_RESPONSE",
+          "confirmationRequired": false,
+          "prompts": {},
+          "slots": [
+            {
+              "name": "StopID",
+              "type": "AMAZON.NUMBER",
+              "elicitationRequired": false,
+              "confirmationRequired": false,
+              "prompts": {}
+            },
+            {
+              "name": "BusID",
+              "type": "ROUTE",
+              "elicitationRequired": false,
+              "confirmationRequired": false,
+              "prompts": {}
+            },
+            {
+              "name": "Agency",
+              "type": "AGENCY",
+              "elicitationRequired": false,
+              "confirmationRequired": false,
+              "prompts": {}
+            }
+          ]
+        },
+        {
+          "name": "RemoveBusIntent",
+          "delegationStrategy": "SKILL_RESPONSE",
+          "confirmationRequired": false,
+          "prompts": {},
+          "slots": [
+            {
+              "name": "BusID",
+              "type": "ROUTE",
+              "elicitationRequired": false,
+              "confirmationRequired": false,
+              "prompts": {}
+            }
+          ]
+        },
+        {
+          "name": "RemoveStopIntent",
+          "delegationStrategy": "SKILL_RESPONSE",
+          "confirmationRequired": false,
+          "prompts": {},
+          "slots": [
+            {
+              "name": "StopID",
+              "type": "AMAZON.NUMBER",
+              "elicitationRequired": false,
+              "confirmationRequired": false,
+              "prompts": {}
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
