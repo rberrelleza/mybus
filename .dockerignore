@@ -1,3 +1,7 @@
+.git
+.github
+skill-package
 okteto.yml
-okteto-stack.yml
+docker-compose.yml
 .stignore
+*.md

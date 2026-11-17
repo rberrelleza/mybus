@@ -1,0 +1,20 @@
+services:
+  mybus:
+    build: .
+    ports:
+      - 8080:8080
+    environment:
+      FIVEONEONE_TOKEN: ${FIVEONEONE_TOKEN}
+      SKILL_ID: ${SKILL_ID}
+      DYNAMO_ENDPOINT: http://dynamodb:8000
+      DYNAMO_CREATE_TABLE: "true"
+      # DynamoDB Local accepts any credentials.
+      AWS_ACCESS_KEY_ID: local
+      AWS_SECRET_ACCESS_KEY: local
+    depends_on:
+      - dynamodb
+
+  dynamodb:
+    image: amazon/dynamodb-local:latest
+    ports:
+      - 8000

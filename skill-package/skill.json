@@ -1,0 +1,59 @@
+{
+  "manifest": {
+    "manifestVersion": "1.0",
+    "publishingInformation": {
+      "locales": {
+        "en-US": {
+          "name": "Where's my bus?",
+          "summary": "Find out when the next Muni or AC Transit bus is coming to your stop.",
+          "description": "Where's my bus tells you when the next San Francisco Muni or AC Transit bus is coming to your favorite stops.\n\nSet up: say \"Alexa, open my bus\" and tell it the stop number printed on the sign or shelter at your bus stop. If more than one line stops there, Alexa will ask which bus you take. You can save several stops and buses, from both Muni and AC Transit.\n\nThen just say \"Alexa, ask my bus when's my next bus\" to hear upcoming arrival times.\n\nYou can also say \"list my buses\", \"remove bus 38\" or \"remove stop 15651\".\n\nArrival predictions come from 511.org. This skill is not affiliated with 511.org, SFMTA, Muni or AC Transit.",
+          "examplePhrases": [
+            "Alexa, open my bus",
+            "Alexa, ask my bus when's my next bus",
+            "Alexa, ask my bus to add stop 15651"
+          ],
+          "keywords": [
+            "muni",
+            "ac transit",
+            "bus",
+            "transit",
+            "san francisco",
+            "oakland",
+            "east bay",
+            "511",
+            "next bus",
+            "arrival times"
+          ],
+          "smallIconUri": "file://assets/images/en-US_smallIcon.png",
+          "largeIconUri": "file://assets/images/en-US_largeIcon.png"
+        }
+      },
+      "isAvailableWorldwide": false,
+      "distributionCountries": [
+        "US"
+      ],
+      "testingInstructions": "Say \"add stop 15651\" (a Muni stop) or use any AC Transit stop number from its stop sign, then ask \"when's my next bus\". Requires a valid 511.org API key on the backend.",
+      "category": "NAVIGATION_AND_TRIP_PLANNER",
+      "distributionMode": "PUBLIC"
+    },
+    "privacyAndCompliance": {
+      "allowsPurchases": false,
+      "usesPersonalInfo": false,
+      "isChildDirected": false,
+      "isExportCompliant": true,
+      "containsAds": false,
+      "locales": {
+        "en-US": {}
+      }
+    },
+    "apis": {
+      "custom": {
+        "endpoint": {
+          "uri": "https://REPLACE-WITH-YOUR-ENDPOINT/",
+          "sslCertificateType": "Wildcard"
+        },
+        "interfaces": []
+      }
+    }
+  }
+}
