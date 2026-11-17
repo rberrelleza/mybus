@@ -90,6 +90,20 @@ func (s Stops) AddBus(agency, code, name, line string) {
 	st.Buses = append(st.Buses, line)
 }
 
+// Follows reports whether the user follows a line at a stop.
+func (s Stops) Follows(agency, code, line string) bool {
+	st, ok := s[key(agency, code)]
+	if !ok {
+		return false
+	}
+	for _, b := range st.Buses {
+		if transit.NormalizeLine(b) == transit.NormalizeLine(line) {
+			return true
+		}
+	}
+	return false
+}
+
 // RemoveBus stops following a line at every stop, dropping stops left
 // empty. It returns whether anything changed.
 func (s Stops) RemoveBus(line string) bool {

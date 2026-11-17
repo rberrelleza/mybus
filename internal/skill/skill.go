@@ -124,7 +124,9 @@ func (s *Skill) getTimes(ctx context.Context, req *alexa.RequestEnvelope) (*alex
 		for _, line := range st.Buses {
 			r := arrivalResult{Stop: st, Line: line, Err: err != nil}
 			if err == nil {
-				r.Times = info.Minutes(line, 3)
+				for _, d := range info.Destinations(line) {
+					r.Groups = append(r.Groups, destTimes{Destination: d, Times: info.MinutesTo(line, d, 3)})
+				}
 			}
 			results = append(results, r)
 		}
@@ -206,13 +208,13 @@ func (s *Skill) addStop(ctx context.Context, req *alexa.RequestEnvelope) (*alexa
 	if requested := spokenBus(req); requested != "" {
 		line := matchLine(requested, lines)
 		if line == "" {
-			return alexa.ElicitSlot(req, slotBus, busNotAtStop(requested, st, lines), whichBusReprompt(lines)), nil
+			return alexa.ElicitSlot(req, slotBus, busNotAtStop(requested, st, info, lines), whichBusReprompt(lines)), nil
 		}
 		chosen = []string{line}
 	} else if len(lines) == 1 {
 		chosen = lines
 	} else {
-		return alexa.ElicitSlot(req, slotBus, whichBus(st, lines), whichBusReprompt(lines)), nil
+		return alexa.ElicitSlot(req, slotBus, whichBus(st, info, lines), whichBusReprompt(lines)), nil
 	}
 
 	stops, err := s.Store.Load(ctx, req.UserID())
@@ -224,6 +226,18 @@ func (s *Skill) addStop(ctx context.Context, req *alexa.RequestEnvelope) (*alexa
 	}
 	if err := s.Store.Save(ctx, req.UserID(), stops); err != nil {
 		return nil, err
+	}
+
+	// Offer the stop's other lines so following several buses is one conversation.
+	var others []string
+	for _, line := range lines {
+		if !stops.Follows(st.Agency, st.Code, line) {
+			others = append(others, line)
+		}
+	}
+	if len(others) > 0 {
+		speech := addedAskMore(chosen, st, others)
+		return withCard(alexa.ElicitSlot(req, slotBus, speech, addMoreReprompt(others)), added(chosen, st)), nil
 	}
 	speech := added(chosen, st)
 	return withCard(alexa.Tell(speech), speech), nil

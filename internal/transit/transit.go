@@ -46,16 +46,20 @@ var ErrUnavailable = errors.New("511.org is unavailable")
 
 var lineSeparators = regexp.MustCompile(`[\s.\-_]`)
 
+var spokenSuffixes = strings.NewReplacer(" RAPID", "R", " EXPRESS", "X")
+
 // NormalizeLine makes spoken line names comparable with 511 line refs:
-// "38 r", "38-R" and "38R" all become "38R".
+// "38 r", "38-R", "38 rapid" and "38R" all become "38R".
 func NormalizeLine(s string) string {
-	return strings.ToUpper(lineSeparators.ReplaceAllString(s, ""))
+	s = spokenSuffixes.Replace(" " + strings.ToUpper(strings.TrimSpace(s)))
+	return lineSeparators.ReplaceAllString(s, "")
 }
 
 // Arrival is a predicted arrival of a line at a stop.
 type Arrival struct {
-	Line    string
-	Minutes int
+	Line        string
+	Destination string // where the vehicle is headed, e.g. "Ocean Beach"; may be empty
+	Minutes     int
 }
 
 // Stop is the real-time information for a stop.
@@ -86,6 +90,39 @@ func (s *Stop) Minutes(line string, limit int) []int {
 	var out []int
 	for _, a := range s.Arrivals {
 		if NormalizeLine(a.Line) == want {
+			out = append(out, a.Minutes)
+		}
+	}
+	sort.Ints(out)
+	if len(out) > limit {
+		out = out[:limit]
+	}
+	return out
+}
+
+// Destinations returns where a line's upcoming vehicles are headed, in order
+// of the soonest arrival for each destination.
+func (s *Stop) Destinations(line string) []string {
+	want := NormalizeLine(line)
+	arrivals := append([]Arrival(nil), s.Arrivals...)
+	sort.SliceStable(arrivals, func(i, j int) bool { return arrivals[i].Minutes < arrivals[j].Minutes })
+	seen := map[string]bool{}
+	var out []string
+	for _, a := range arrivals {
+		if NormalizeLine(a.Line) == want && !seen[a.Destination] {
+			seen[a.Destination] = true
+			out = append(out, a.Destination)
+		}
+	}
+	return out
+}
+
+// MinutesTo returns up to limit arrival times for a line toward one destination.
+func (s *Stop) MinutesTo(line, destination string, limit int) []int {
+	want := NormalizeLine(line)
+	var out []int
+	for _, a := range s.Arrivals {
+		if NormalizeLine(a.Line) == want && a.Destination == destination {
 			out = append(out, a.Minutes)
 		}
 	}
@@ -128,6 +165,8 @@ type delivery struct {
 		MonitoredVehicleJourney struct {
 			LineRef           string
 			PublishedLineName string
+			DirectionRef      string
+			DestinationName   siriText
 			MonitoredCall     struct {
 				StopPointName         string
 				ExpectedArrivalTime   string
@@ -137,6 +176,42 @@ type delivery struct {
 			}
 		}
 	}
+}
+
+// siriText is a SIRI natural-language field, which may be encoded as a
+// string, a list of strings, or objects with a "value".
+type siriText string
+
+func (t *siriText) UnmarshalJSON(b []byte) error {
+	var s string
+	if json.Unmarshal(b, &s) == nil {
+		*t = siriText(s)
+		return nil
+	}
+	var list []json.RawMessage
+	if json.Unmarshal(b, &list) == nil && len(list) > 0 {
+		return t.UnmarshalJSON(list[0])
+	}
+	var obj struct{ Value string }
+	if json.Unmarshal(b, &obj) == nil {
+		*t = siriText(obj.Value)
+	}
+	return nil
+}
+
+// destination returns where a journey is headed, falling back to the
+// direction when 511 gives no destination name.
+func destination(name siriText, direction string) string {
+	if d := strings.TrimSpace(string(name)); d != "" {
+		return d
+	}
+	switch strings.ToUpper(direction) {
+	case "IB", "INBOUND":
+		return "inbound"
+	case "OB", "OUTBOUND":
+		return "outbound"
+	}
+	return ""
 }
 
 // Parse turns a StopMonitoring JSON payload into a Stop.
@@ -199,7 +274,7 @@ func Parse(body []byte, agency, code string, now time.Time) (*Stop, error) {
 			if minutes < 0 {
 				minutes = 0
 			}
-			stop.Arrivals = append(stop.Arrivals, Arrival{Line: line, Minutes: minutes})
+			stop.Arrivals = append(stop.Arrivals, Arrival{Line: line, Destination: destination(j.DestinationName, j.DirectionRef), Minutes: minutes})
 		}
 	}
 	return stop, nil

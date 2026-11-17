@@ -33,7 +33,8 @@ skill-package/              Skill manifest, interaction model and icons (ASK CLI
 
 | Variable | Default | |
 | --- | --- | --- |
-| `FIVEONEONE_TOKEN` | — | **Required.** [511.org API key](https://511.org/open-data/token) |
+| `FIVEONEONE_TOKEN_SECRET` | — | Name or ARN of an AWS Secrets Manager secret holding the 511.org key, as plain text or as JSON `{"FIVEONEONE_TOKEN": "…"}`. Takes precedence over `FIVEONEONE_TOKEN` |
+| `FIVEONEONE_TOKEN` | — | [511.org API key](https://511.org/open-data/token). One of these two is required |
 | `SKILL_ID` | — | Skill ID from the developer console. Requests for other skills are rejected (`APPLICATION_ID` also works) |
 | `DYNAMO_TABLE` | `sfbus` | DynamoDB table (partition key `userId`, string) |
 | `DYNAMO_REGION` | `us-east-1` | |
@@ -86,6 +87,22 @@ Add an Alexa Skills Kit trigger with your skill ID, give the function's role
 `dynamodb:GetItem`, `UpdateItem` (and `CreateTable` if `DYNAMO_CREATE_TABLE` is
 set) on the table, and set the endpoint in `skill.json` to the function ARN
 (`"endpoint": {"uri": "arn:aws:lambda:..."}`).
+
+### Deploy with GitHub Actions
+
+The `deploy` job in `.github/workflows/ci.yml` builds and deploys `main` to
+Lambda after the tests pass. It authenticates to AWS with GitHub OIDC, so no
+AWS keys are stored in GitHub. It is skipped until these repository variables
+are set (Settings → Secrets and variables → Actions → Variables):
+
+| Variable | Example |
+| --- | --- |
+| `AWS_DEPLOY_ROLE_ARN` | `arn:aws:iam::123456789012:role/mybus-github-deploy` |
+| `AWS_REGION` | `us-east-1` (default) |
+| `LAMBDA_FUNCTION_NAME` | `mybus` (default) |
+
+The job runs in the `production` environment. The one-time AWS setup (OIDC
+provider, deploy role) is in the deployment guide.
 
 ### Skill package
 

@@ -27,3 +27,36 @@ jobs:
           done
       - name: Build container image
         run: docker build -t mybus .
+
+  # Deploys main to AWS Lambda using GitHub OIDC (no AWS keys stored in GitHub).
+  # Skipped until the AWS_DEPLOY_ROLE_ARN repository variable is set; see
+  # README.md "Deploy with GitHub Actions" for the one-time AWS setup.
+  deploy:
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.AWS_DEPLOY_ROLE_ARN != ''
+    runs-on: ubuntu-latest
+    environment: production
+    concurrency: production
+    permissions:
+      contents: read
+      id-token: write # lets the job request the OIDC token AWS trusts
+    env:
+      AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
+      FUNCTION_NAME: ${{ vars.LAMBDA_FUNCTION_NAME || 'mybus' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Build
+        run: |
+          GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -tags lambda.norpc -trimpath -ldflags="-s -w" -o bootstrap .
+          zip -j mybus.zip bootstrap
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Deploy to Lambda
+        run: |
+          aws lambda update-function-code --function-name "$FUNCTION_NAME" --zip-file fileb://mybus.zip --query LastUpdateStatus --output text
+          aws lambda wait function-updated-v2 --function-name "$FUNCTION_NAME"
