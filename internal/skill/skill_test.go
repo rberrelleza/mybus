@@ -371,3 +371,95 @@ func TestStorageErrorsApologize(t *testing.T) {
 	r := handle(t, s, envelope(alexa.LaunchRequest, "", nil))
 	contains(t, speech(r), "something went wrong")
 }
+
+// --- Issues raised in the Amazon reviews of the original skill ---
+
+func directionsSkill() (*Skill, *store.Memory) {
+	ft := &fakeTransit{stops: map[string]*transit.Stop{
+		"SF:15651": {Agency: "SF", Code: "15651", Name: "Geary Blvd & Masonic Ave", Arrivals: []transit.Arrival{
+			{Line: "38", Destination: "Ocean Beach", Minutes: 3},
+			{Line: "38", Destination: "Fort Miley", Minutes: 7},
+			{Line: "38", Destination: "Ocean Beach", Minutes: 15},
+			{Line: "38R", Destination: "48th Avenue", Minutes: 5},
+			{Line: "43", Destination: "outbound", Minutes: 9},
+		}},
+	}}
+	mem := &store.Memory{}
+	return &Skill{ID: skillID, Transit: ft, Store: mem}, mem
+}
+
+// "Wish it gave directions ... I get a list of identical numbers".
+func TestReviewSaysWhereEachBusIsGoing(t *testing.T) {
+	s, mem := directionsSkill()
+	stops := store.Stops{}
+	stops.AddBus("SF", "15651", "Geary Blvd & Masonic Ave", "38")
+	stops.AddBus("SF", "15651", "Geary Blvd & Masonic Ave", "38R")
+	stops.AddBus("SF", "15651", "Geary Blvd & Masonic Ave", "43")
+	_ = mem.Save(context.Background(), userID, stops)
+
+	r := handle(t, s, intent(intentGetTimes, nil))
+	contains(t, speech(r),
+		"The 38 to Ocean Beach is arriving in 3 and 15 minutes, and to Fort Miley in 7 minutes.",
+		"The 38R to 48th Avenue is arriving in 5 minutes.",
+		"The 43 outbound is arriving in 9 minutes.",
+	)
+	if strings.Contains(speech(r), "  ") {
+		t.Errorf("double space in %q", speech(r))
+	}
+
+	// Destinations also help pick the right line when adding a stop.
+	r = handle(t, s, intent(intentAddStop, map[string]string{slotStop: "15651"}))
+	contains(t, speech(r), "the 38 to Ocean Beach or to Fort Miley, the 38R to 48th Avenue and the 43 outbound")
+}
+
+// "can't add more than one bus".
+func TestReviewAddSeveralBusesAtOneStop(t *testing.T) {
+	s, mem := directionsSkill()
+	r := handle(t, s, intent(intentAddStop, map[string]string{slotStop: "15651", slotBus: "38"}))
+	contains(t, speech(r), "I added the 38 at Geary", "add another bus here, like the 38R or the 43")
+	if elicited(r) != slotBus || ends(r) {
+		t.Fatalf("expected to offer another bus, got %+v", r.Response)
+	}
+
+	r = handle(t, s, intent(intentAddStop, map[string]string{slotStop: "15651", slotBus: "43"}))
+	contains(t, speech(r), "I added the 43", "like the 38R")
+
+	r = handle(t, s, intent(intentAddStop, map[string]string{slotStop: "15651", slotBus: "38R"}))
+	contains(t, speech(r), "I added the 38R")
+	if !ends(r) {
+		t.Error("all lines added: expected the session to end")
+	}
+
+	stops, _ := mem.Load(context.Background(), userID)
+	if got := stops["SF:15651"].Buses; len(got) != 3 {
+		t.Fatalf("expected 3 buses, got %v", got)
+	}
+
+	// Saying "no" to the offer ends politely.
+	r = handle(t, s, intent("AMAZON.NoIntent", nil))
+	if !ends(r) {
+		t.Error("expected no to end the session")
+	}
+}
+
+// "Tried to add 38R. But it keeps telling me it added bus 38 no R."
+func TestReviewAddsRapidNotLocal(t *testing.T) {
+	for _, spoken := range []string{"38R", "38 r", "38 R", "38 rapid", "38-R"} {
+		s, mem := directionsSkill()
+		r := handle(t, s, intent(intentAddStop, map[string]string{slotStop: "15651", slotBus: spoken}))
+		contains(t, speech(r), "I added the 38R at")
+		stops, _ := mem.Load(context.Background(), userID)
+		if got := stops["SF:15651"].Buses; len(got) != 1 || got[0] != "38R" {
+			t.Errorf("%q saved %v, want [38R]", spoken, got)
+		}
+	}
+}
+
+// "My bus is in FLORIDA how can I get it to work".
+func TestReviewExplainsCoverage(t *testing.T) {
+	s, _, _ := newSkill()
+	r := handle(t, s, intent(intentAddStop, map[string]string{slotStop: "42"}))
+	contains(t, speech(r), "only covers Muni and AC Transit in the San Francisco Bay Area")
+	r = handle(t, s, envelope(alexa.LaunchRequest, "", nil))
+	contains(t, speech(r), "San Francisco and the East Bay")
+}

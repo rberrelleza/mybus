@@ -83,11 +83,13 @@ func minutes(times []int) string {
 var (
 	addStopExample = "add stop " + digits(exampleStop)
 
-	welcomeNoStops = "Welcome to My Bus. I can tell you when your next Muni or AC Transit bus is coming. " +
+	welcomeNoStops = "Welcome to My Bus. I can tell you when your next Muni or AC Transit bus is coming, " +
+		"in San Francisco and the East Bay. " +
 		"First, tell me the stop number printed on the bus stop sign. For example, say: " + addStopExample + "."
 	welcomeNoStopsReprompt = "What's your stop number? For example, say: " + addStopExample + "."
 
 	helpText = "My Bus tells you when the next Muni or AC Transit bus is coming to your saved stops. " +
+		"It only covers those two Bay Area agencies. " +
 		"To save a stop, say " + addStopExample + ". You'll find the stop number on the sign or shelter at your stop. " +
 		"To hear arrival times, just say: next bus. " +
 		"You can also say list my buses, or remove bus 38. What would you like to do?"
@@ -112,30 +114,77 @@ var (
 func stopNotFound(code string) string {
 	return "I couldn't find any Muni or AC Transit buses coming to stop " + digits(code) + ". " +
 		"Please check the number on the bus stop sign. If it's late at night, the stop might have no service " +
-		"right now, so try again during service hours. Which stop would you like to add?"
+		"right now, so try again during service hours. Note that My Bus only covers Muni and AC Transit " +
+		"in the San Francisco Bay Area. Which stop would you like to add?"
+}
+
+// destPhrase is "to Ocean Beach", "inbound", or "" when unknown.
+func destPhrase(d string) string {
+	switch d {
+	case "":
+		return ""
+	case "inbound", "outbound":
+		return d
+	}
+	return "to " + esc(d)
+}
+
+// toward describes where a line is headed: "the 38 to Ocean Beach".
+func toward(line string, destinations []string) string {
+	var named []string
+	for _, d := range destinations {
+		if p := destPhrase(d); p != "" {
+			named = append(named, p)
+		}
+	}
+	if len(named) == 0 {
+		return bus(line)
+	}
+	if len(named) > 2 {
+		named = named[:2]
+	}
+	return bus(line) + " " + join(named, "or")
+}
+
+func linesToward(info *transit.Stop, lines []string, conj string) string {
+	out := make([]string, len(lines))
+	for i, l := range lines {
+		out[i] = toward(l, info.Destinations(l))
+	}
+	return join(out, conj)
 }
 
 func whichAgency(code string) string {
 	return "Stop " + digits(code) + " exists for both Muni and AC Transit. Which one do you mean?"
 }
 
-func whichBus(s *store.Stop, lines []string) string {
+func whichBus(s *store.Stop, info *transit.Stop, lines []string) string {
 	return fmt.Sprintf("%s is served by %s. Which bus should I add? For example, say: the %s.",
-		stopLabel(s), buses(lines, "and"), esc(lines[0]))
+		stopLabel(s), linesToward(info, lines, "and"), esc(lines[0]))
 }
 
 func whichBusReprompt(lines []string) string {
 	return "Which bus should I add: " + buses(lines, "or") + "?"
 }
 
-func busNotAtStop(line string, s *store.Stop, lines []string) string {
+func busNotAtStop(line string, s *store.Stop, info *transit.Stop, lines []string) string {
 	return fmt.Sprintf("%s doesn't stop at %s. The buses there are %s. Which one should I add?",
-		Bus(line), stopLabel(s), buses(lines, "and"))
+		Bus(line), stopLabel(s), linesToward(info, lines, "and"))
 }
 
 func added(lines []string, s *store.Stop) string {
 	return fmt.Sprintf("Done. I added %s at %s. Next time, just say: Alexa, ask My Bus when's my next bus.",
 		buses(lines, "and"), stopLabel(s))
+}
+
+// addedAskMore confirms an add and offers the stop's other lines.
+func addedAskMore(lines []string, s *store.Stop, others []string) string {
+	return fmt.Sprintf("Done. I added %s at %s. Do you want to add another bus here, like %s? Say the bus, or say no.",
+		buses(lines, "and"), stopLabel(s), buses(others, "or"))
+}
+
+func addMoreReprompt(others []string) string {
+	return "Which other bus should I add: " + buses(others, "or") + "? Or say no."
 }
 
 func removedBus(line string) string  { return "I removed " + bus(line) + " from your list." }
@@ -162,13 +211,19 @@ func listBuses(stops []*store.Stop) string {
 	return "You're following " + join(parts, "and") + "."
 }
 
-// arrivalResult is one followed line and its upcoming arrivals; Times is nil
-// when the stop could not be fetched.
+// destTimes is the upcoming arrivals of a line toward one destination.
+type destTimes struct {
+	Destination string
+	Times       []int
+}
+
+// arrivalResult is one followed line and its upcoming arrivals, grouped by
+// destination.
 type arrivalResult struct {
-	Stop  *store.Stop
-	Line  string
-	Times []int
-	Err   bool
+	Stop   *store.Stop
+	Line   string
+	Groups []destTimes
+	Err    bool
 }
 
 func departures(results []arrivalResult, multiAgency bool) string {
@@ -189,10 +244,20 @@ func departures(results []arrivalResult, multiAgency bool) string {
 		switch {
 		case r.Err:
 			sentences = append(sentences, "I couldn't get times for "+name+where+".")
-		case len(r.Times) == 0:
+		case len(r.Groups) == 0:
 			sentences = append(sentences, name+" has no upcoming arrivals"+where+".")
 		default:
-			sentences = append(sentences, name+" is "+minutes(r.Times)+where+".")
+			// "The 38 to Ocean Beach is arriving in 3 minutes, and to Fort Miley in 11 minutes."
+			parts := make([]string, len(r.Groups))
+			for i, g := range r.Groups {
+				dest := destPhrase(g.Destination)
+				if i == 0 {
+					parts[i] = strings.TrimSpace(name+" "+dest) + " is " + minutes(g.Times)
+				} else {
+					parts[i] = strings.TrimSpace("and "+dest) + " " + strings.TrimPrefix(minutes(g.Times), "arriving ")
+				}
+			}
+			sentences = append(sentences, strings.Join(parts, ", ")+where+".")
 		}
 	}
 	return strings.Join(sentences, " ")

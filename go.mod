@@ -8,6 +8,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.33.19
 	github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue v1.21.23
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.74.1
+	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.51.0
 )
 
 require (

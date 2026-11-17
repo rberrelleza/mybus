@@ -119,3 +119,33 @@ func TestClient(t *testing.T) {
 		t.Errorf("expected ErrUnavailable, got %v", err)
 	}
 }
+
+func TestParseDestinations(t *testing.T) {
+	body := `{"ServiceDelivery":{"StopMonitoringDelivery":{"MonitoredStopVisit":[
+	 {"MonitoredVehicleJourney":{"LineRef":"38","DirectionRef":"OB","DestinationName":"Ocean Beach","MonitoredCall":{"ExpectedArrivalTime":"2026-11-17T18:03:00Z"}}},
+	 {"MonitoredVehicleJourney":{"LineRef":"38","DirectionRef":"OB","DestinationName":["Fort Miley"],"MonitoredCall":{"ExpectedArrivalTime":"2026-11-17T18:07:00Z"}}},
+	 {"MonitoredVehicleJourney":{"LineRef":"38","DirectionRef":"OB","DestinationName":"Ocean Beach","MonitoredCall":{"ExpectedArrivalTime":"2026-11-17T18:15:00Z"}}},
+	 {"MonitoredVehicleJourney":{"LineRef":"43","DirectionRef":"IB","MonitoredCall":{"ExpectedArrivalTime":"2026-11-17T18:09:00Z"}}}
+	]}}}`
+	stop, err := Parse([]byte(body), Muni, "15651", now)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got, want := stop.Destinations("38"), []string{"Ocean Beach", "Fort Miley"}; !reflect.DeepEqual(got, want) {
+		t.Errorf("destinations = %v, want %v", got, want)
+	}
+	if got := stop.MinutesTo("38", "Ocean Beach", 3); !reflect.DeepEqual(got, []int{3, 15}) {
+		t.Errorf("minutes = %v", got)
+	}
+	if got := stop.Destinations("43"); !reflect.DeepEqual(got, []string{"inbound"}) {
+		t.Errorf("direction fallback = %v", got)
+	}
+}
+
+func TestNormalizeSpokenLines(t *testing.T) {
+	for in, want := range map[string]string{"38 rapid": "38R", "38 r": "38R", "8 express": "8X", "k owl": "KOWL", "N": "N", " 51a ": "51A"} {
+		if got := NormalizeLine(in); got != want {
+			t.Errorf("NormalizeLine(%q) = %q, want %q", in, got, want)
+		}
+	}
+}

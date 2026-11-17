@@ -42,9 +42,9 @@ func main() {
 func run(logger *slog.Logger) error {
 	ctx := context.Background()
 
-	token := os.Getenv("FIVEONEONE_TOKEN")
-	if token == "" {
-		return errors.New("FIVEONEONE_TOKEN must be set to a 511.org API key")
+	token, err := fiveOneOneToken(ctx, os.Getenv, newSecretsClient)
+	if err != nil {
+		return err
 	}
 	skillID := firstNonEmpty(os.Getenv("SKILL_ID"), os.Getenv("APPLICATION_ID"))
 	if skillID == "" {
