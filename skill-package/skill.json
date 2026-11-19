@@ -33,7 +33,7 @@
         "US"
       ],
       "testingInstructions": "Say \"add stop 15651\" (a Muni stop) or use any AC Transit stop number from its stop sign, then ask \"when's my next bus\". Requires a valid 511.org API key on the backend.",
-      "category": "NAVIGATION_AND_TRIP_PLANNER",
+      "category": "PUBLIC_TRANSPORTATION",
       "distributionMode": "PUBLIC"
     },
     "privacyAndCompliance": {
@@ -49,8 +49,7 @@
     "apis": {
       "custom": {
         "endpoint": {
-          "uri": "https://REPLACE-WITH-YOUR-ENDPOINT/",
-          "sslCertificateType": "Wildcard"
+          "uri": "arn:aws:lambda:us-east-1:162862892340:function:mybus"
         },
         "interfaces": []
       }

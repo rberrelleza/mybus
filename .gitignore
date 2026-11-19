@@ -2,3 +2,8 @@
 /dist
 .ask/
 .env
+/bootstrap
+/mybus.zip
+/out.json
+/launch.json
+/addstop.json
