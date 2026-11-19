@@ -463,3 +463,16 @@ func TestReviewExplainsCoverage(t *testing.T) {
 	r = handle(t, s, envelope(alexa.LaunchRequest, "", nil))
 	contains(t, speech(r), "San Francisco and the East Bay")
 }
+
+func TestStopNameDirectionSpokenAsWords(t *testing.T) {
+	for name, want := range map[string]string{
+		"Kansas St & 23rd St IB": "Kansas St &amp; 23rd St inbound",
+		"Market St & 8th St OB":  "Market St &amp; 8th St outbound",
+		"Mission St & 16th St":   "Mission St &amp; 16th St",
+		"OBrien St IB":           "OBrien St inbound",
+	} {
+		if got := stopLabel(&store.Stop{Code: "1", Name: name}); got != want {
+			t.Errorf("stopLabel(%q) = %q, want %q", name, got, want)
+		}
+	}
+}

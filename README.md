@@ -4,7 +4,9 @@ An Alexa skill that tells you when the next **SF Muni** or **AC Transit** bus is
 coming to your saved stops, using real-time predictions from
 [511.org](https://511.org/open-data/transit).
 
-> "Alexa, open my bus" · "Alexa, ask my bus when's my next bus" · "Alexa, ask my bus to add stop 15651"
+> "Alexa, ask my bus when's my next bus" · "Alexa, ask my bus to add stop 15651" · "Alexa, open my bus skill"
+>
+> "Alexa, open my bus" (without "skill") does not work: Alexa treats it as a device command.
 
 ## What you can say
 

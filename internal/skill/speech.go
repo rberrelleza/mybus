@@ -55,9 +55,19 @@ func buses(lines []string, conj string) string {
 	return join(out, conj)
 }
 
+// directionSuffix matches 511's "IB"/"OB" suffix on stop names, as in
+// "Kansas St & 23rd St IB", which Alexa would otherwise spell out.
+var directionSuffix = regexp.MustCompile(`\s+(IB|OB)$`)
+
 func stopLabel(s *store.Stop) string {
 	if s.Name != "" && s.Name != s.Code {
-		return esc(s.Name)
+		name := directionSuffix.ReplaceAllStringFunc(s.Name, func(m string) string {
+			if strings.TrimSpace(m) == "IB" {
+				return " inbound"
+			}
+			return " outbound"
+		})
+		return esc(name)
 	}
 	return "stop " + digits(s.Code)
 }
