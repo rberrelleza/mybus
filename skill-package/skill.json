@@ -6,11 +6,11 @@
         "en-US": {
           "name": "Where's my bus?",
           "summary": "Hear when the next Muni or AC Transit bus is coming to your stop, and where it's headed.",
-          "description": "Where's my bus tells you when the next San Francisco Muni or AC Transit bus is coming to your favorite stops, and where each one is headed.\n\nCoverage: Muni (San Francisco) and AC Transit (East Bay) only. Other cities and agencies are not supported.\n\nSet up: say \"Alexa, open my bus\" and tell it the stop number printed on the sign or shelter at your bus stop (for example \"add stop 15651\"). If several lines stop there, Alexa tells you each line and where it's headed, and asks which ones you take. You can add as many buses and stops as you like, from both Muni and AC Transit.\n\nThen just say \"Alexa, ask my bus when's my next bus\" to hear upcoming arrivals, for example: \"The 38 to Ocean Beach is arriving in 3 and 15 minutes.\"\n\nYou can also say \"list my buses\", \"remove bus 38\" or \"remove stop 15651\".\n\nArrival predictions come from 511.org. This skill is not affiliated with 511.org, SFMTA, Muni or AC Transit.",
+          "description": "Where's my bus tells you when the next San Francisco Muni or AC Transit bus is coming to your favorite stops, and where each one is headed.\n\nCoverage: Muni (San Francisco) and AC Transit (East Bay) only. Other cities and agencies are not supported.\n\nSet up: say \"Alexa, ask my bus to add stop\" followed by the stop number printed on the sign or shelter at your bus stop, for example \"Alexa, ask my bus to add stop 15651\". If several lines stop there, Alexa tells you each line and where it's headed, and asks which ones you take. You can add as many buses and stops as you like, from both Muni and AC Transit.\n\nThen just say \"Alexa, ask my bus when's my next bus\" to hear upcoming arrivals, for example: \"The 38 to Ocean Beach is arriving in 3 and 15 minutes.\"\n\nYou can also say \"Alexa, ask my bus to list my buses\", \"\u2026to remove bus 38\" or \"\u2026to remove stop 15651\". To open the skill without a request, say \"Alexa, open my bus skill\".\n\nArrival predictions come from 511.org. This skill is not affiliated with 511.org, SFMTA, Muni or AC Transit.",
           "examplePhrases": [
-            "Alexa, open my bus",
             "Alexa, ask my bus when's my next bus",
-            "Alexa, ask my bus to add stop 15651"
+            "Alexa, ask my bus to add stop 15651",
+            "Alexa, open my bus skill"
           ],
           "keywords": [
             "muni",
@@ -33,7 +33,7 @@
         "US"
       ],
       "testingInstructions": "Say \"add stop 15651\" (a Muni stop) or use any AC Transit stop number from its stop sign, then ask \"when's my next bus\". Requires a valid 511.org API key on the backend.",
-      "category": "NAVIGATION_AND_TRIP_PLANNER",
+      "category": "PUBLIC_TRANSPORTATION",
       "distributionMode": "PUBLIC"
     },
     "privacyAndCompliance": {
@@ -49,8 +49,7 @@
     "apis": {
       "custom": {
         "endpoint": {
-          "uri": "https://REPLACE-WITH-YOUR-ENDPOINT/",
-          "sslCertificateType": "Wildcard"
+          "uri": "arn:aws:lambda:us-east-1:162862892340:function:mybus"
         },
         "interfaces": []
       }
