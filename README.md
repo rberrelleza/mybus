@@ -79,6 +79,9 @@ Set it as `apis.custom.endpoint.uri` in `skill-package/skill.json`.
 
 ### AWS Lambda
 
+The full step-by-step setup, including Secrets Manager, backups, testing and
+certification, is in [docs/deploy-aws-lambda.md](docs/deploy-aws-lambda.md).
+
 The same binary runs on the `provided.al2023` runtime:
 
 ```bash
@@ -104,7 +107,7 @@ are set (Settings → Secrets and variables → Actions → Variables):
 | `LAMBDA_FUNCTION_NAME` | `mybus` (default) |
 
 The job runs in the `production` environment. The one-time AWS setup (OIDC
-provider, deploy role) is in the deployment guide.
+provider, deploy role) is in [docs/deploy-aws-lambda.md](docs/deploy-aws-lambda.md).
 
 ### Skill package
 
