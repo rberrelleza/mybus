@@ -23,8 +23,9 @@ Stop numbers are printed on bus stop signs and shelters.
 ## Layout
 
 ```
-main.go                     Lambda runtime or HTTPS server (auto-detected)
-internal/alexa              Request/response types, ElicitSlot, request signature verification
+main.go                     AWS Lambda entry point
+secrets.go                  Reads the 511.org key from Secrets Manager
+internal/alexa              Alexa request/response types and Dialog.ElicitSlot
 internal/skill              Intent handlers and speech
 internal/transit            511.org StopMonitoring client (Muni = SF, AC Transit = AC)
 internal/store              Saved stops in DynamoDB (same table/layout as v1)
@@ -40,10 +41,6 @@ skill-package/              Skill manifest, interaction model and icons (ASK CLI
 | `SKILL_ID` | — | Skill ID from the developer console. Requests for other skills are rejected (`APPLICATION_ID` also works) |
 | `DYNAMO_TABLE` | `sfbus` | DynamoDB table (partition key `userId`, string) |
 | `DYNAMO_REGION` | `us-east-1` | |
-| `DYNAMO_ENDPOINT` | — | For DynamoDB Local |
-| `DYNAMO_CREATE_TABLE` | `false` | Create the table on startup (local development) |
-| `PORT` | `8080` | HTTP mode only |
-| `SKIP_REQUEST_VERIFICATION` | `false` | HTTP mode only. Disables Alexa signature checks for local testing. **Never in production** |
 | `LOGLEVEL` | `INFO` | `DEBUG`, `INFO`, `WARN`, `ERROR` |
 
 511.org limits each key to 60 requests per hour by default. The skill makes one
@@ -57,38 +54,21 @@ request per saved stop and caches each one for 30 seconds.
 go test ./...
 ```
 
-### Locally or on Okteto
-
-```bash
-FIVEONEONE_TOKEN=... SKILL_ID=... docker compose up --build
-```
-
-```bash
-okteto deploy
-```
-
-```bash
-okteto up mybus
-```
-
-In HTTP mode the binary is an Alexa
-[web service endpoint](https://developer.amazon.com/en-US/docs/alexa/custom-skills/host-a-custom-skill-as-a-web-service.html).
-It checks the `Signature-256` / `SignatureCertChainUrl` headers and the request
-timestamp on every call. Alexa needs a public HTTPS URL with a valid certificate.
-Set it as `apis.custom.endpoint.uri` in `skill-package/skill.json`.
-
 ### AWS Lambda
 
-The same binary runs on the `provided.al2023` runtime:
+The skill runs only on AWS Lambda (`provided.al2023`, arm64). The full
+step-by-step setup, including Secrets Manager, backups, testing and
+certification, is in [docs/deploy-aws-lambda.md](docs/deploy-aws-lambda.md).
+
+To build the deployment zip by hand:
 
 ```bash
-GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -tags lambda.norpc -o bootstrap . && zip mybus.zip bootstrap
+GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -tags lambda.norpc -trimpath -ldflags="-s -w" -o bootstrap . && zip -j mybus.zip bootstrap
 ```
 
-Add an Alexa Skills Kit trigger with your skill ID, give the function's role
-`dynamodb:GetItem`, `UpdateItem` (and `CreateTable` if `DYNAMO_CREATE_TABLE` is
-set) on the table, and set the endpoint in `skill.json` to the function ARN
-(`"endpoint": {"uri": "arn:aws:lambda:..."}`).
+To try a change without deploying, invoke the function with a sample request
+(see "Test the function before connecting Alexa" in the guide), or use the
+Test tab in the Alexa developer console.
 
 ### Deploy with GitHub Actions
 
@@ -104,7 +84,7 @@ are set (Settings → Secrets and variables → Actions → Variables):
 | `LAMBDA_FUNCTION_NAME` | `mybus` (default) |
 
 The job runs in the `production` environment. The one-time AWS setup (OIDC
-provider, deploy role) is in the deployment guide.
+provider, deploy role) is in [docs/deploy-aws-lambda.md](docs/deploy-aws-lambda.md).
 
 ### Skill package
 

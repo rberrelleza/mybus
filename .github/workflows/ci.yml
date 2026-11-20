@@ -12,8 +12,8 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
       - name: Check formatting
@@ -25,8 +25,6 @@ jobs:
           for f in skill-package/skill.json skill-package/interactionModels/custom/*.json; do
             python3 -m json.tool "$f" > /dev/null
           done
-      - name: Build container image
-        run: docker build -t mybus .
 
   # Deploys main to AWS Lambda using GitHub OIDC (no AWS keys stored in GitHub).
   # Skipped until the AWS_DEPLOY_ROLE_ARN repository variable is set; see
@@ -44,15 +42,15 @@ jobs:
       AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
       FUNCTION_NAME: ${{ vars.LAMBDA_FUNCTION_NAME || 'mybus' }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
       - name: Build
         run: |
           GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -tags lambda.norpc -trimpath -ldflags="-s -w" -o bootstrap .
           zip -j mybus.zip bootstrap
-      - uses: aws-actions/configure-aws-credentials@v4
+      - uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}

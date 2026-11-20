@@ -1,7 +1,0 @@
-.git
-.github
-skill-package
-okteto.yml
-docker-compose.yml
-.stignore
-*.md

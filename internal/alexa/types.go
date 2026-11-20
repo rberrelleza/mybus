@@ -1,6 +1,5 @@
 // Package alexa contains the subset of the Alexa Skills Kit request/response
-// JSON interface used by this skill, plus request verification for skills
-// hosted as an HTTPS web service.
+// JSON interface used by this skill.
 //
 // Reference: https://developer.amazon.com/en-US/docs/alexa/custom-skills/request-and-response-json-reference.html
 package alexa
