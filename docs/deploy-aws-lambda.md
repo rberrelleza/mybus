@@ -2,7 +2,7 @@
 
 My Bus runs on AWS Lambda as one Go binary on the `provided.al2023` runtime (arm64), in `us-east-1`. The 511.org API key lives in AWS Secrets Manager and the function reads it once per cold start. Saved stops stay in the existing `sfbus` DynamoDB table.
 
-On each request, Alexa invokes the function directly through an Alexa Skills Kit trigger. That trigger checks the skill ID, so the HTTPS signature checks used in web-service mode are not needed here. The function then reads the user's stops from DynamoDB and fetches arrivals from 511.org.
+On each request, Alexa invokes the function directly through an Alexa Skills Kit trigger, which only accepts calls for your skill ID. The function then reads the user's stops from DynamoDB and fetches arrivals from 511.org.
 
 Once set up, every push to `main` that passes the tests deploys itself through GitHub Actions (section 6). The rest of this guide is the one-time setup, and the manual steps for the rare changes the workflow doesn't cover.
 
@@ -39,7 +39,7 @@ Lambda's `provided.al2023` runtime runs an executable named `bootstrap`, so the 
 GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -tags lambda.norpc -trimpath -ldflags="-s -w" -o bootstrap . && zip -j mybus.zip bootstrap
 ```
 
-Check it with `file bootstrap`, which should say `ELF 64-bit LSB executable, ARM aarch64`. The binary detects Lambda by the `AWS_LAMBDA_RUNTIME_API` variable the runtime sets, so the same code also runs as a web service elsewhere. `bootstrap` and `mybus.zip` are git-ignored.
+Check it with `file bootstrap`, which should say `ELF 64-bit LSB executable, ARM aarch64`. `bootstrap` and `mybus.zip` are git-ignored.
 
 ## 2. IAM role and DynamoDB table
 

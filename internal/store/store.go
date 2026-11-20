@@ -8,7 +8,6 @@ package store
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"sort"
 	"sync"
@@ -187,22 +186,6 @@ func (d *DynamoDB) Save(ctx context.Context, userID string, stops Stops) error {
 		return fmt.Errorf("saving stops: %w", err)
 	}
 	return nil
-}
-
-// CreateTable creates the table if it doesn't exist (for local development
-// against DynamoDB Local).
-func (d *DynamoDB) CreateTable(ctx context.Context) error {
-	_, err := d.Client.CreateTable(ctx, &dynamodb.CreateTableInput{
-		TableName:            aws.String(d.Table),
-		AttributeDefinitions: []types.AttributeDefinition{{AttributeName: aws.String("userId"), AttributeType: types.ScalarAttributeTypeS}},
-		KeySchema:            []types.KeySchemaElement{{AttributeName: aws.String("userId"), KeyType: types.KeyTypeHash}},
-		BillingMode:          types.BillingModePayPerRequest,
-	})
-	var exists *types.ResourceInUseException
-	if errors.As(err, &exists) {
-		return nil
-	}
-	return err
 }
 
 // Memory is an in-memory Store for tests and local experiments.
